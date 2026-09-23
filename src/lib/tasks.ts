@@ -1,5 +1,5 @@
 import { and, asc, eq, inArray, like, max, ne } from "drizzle-orm";
-import { getDb, type Db } from "./db";
+import { getDb, type Conn, type Db } from "./db";
 import { labels, taskLabels, tasks, type Label, type TaskRow } from "./db/schema";
 import {
   createTaskSchema,
@@ -13,9 +13,6 @@ import {
 } from "./validation";
 
 export type Task = TaskRow & { labels: Label[] };
-
-/** Either the database or an open transaction. */
-type Conn = Db | Parameters<Parameters<Db["transaction"]>[0]>[0];
 
 /** Loads the labels for a set of task rows and attaches them. */
 function withLabels(db: Conn, rows: TaskRow[]): Task[] {
