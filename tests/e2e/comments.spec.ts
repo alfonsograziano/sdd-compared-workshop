@@ -2,6 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 // Seeded tasks, each used by one test so the tests do not step on each other.
 const COMMENT_TASK = "Add CSV export to the reports page";
+const ACTIVITY_TASK = "Redesign the empty state for new workspaces"; // priority Medium in the seed
 
 function card(page: Page, title: string) {
   return page.getByTestId("task-card").filter({ hasText: title });
@@ -53,4 +54,15 @@ test("add, edit and delete a comment", async ({ page }) => {
   await expect(comments).toHaveCount(0);
   await page.reload();
   await expect(comments).toHaveCount(0);
+});
+
+test("a priority change shows up in the timeline", async ({ page }) => {
+  await openTask(page, ACTIVITY_TASK);
+  const activity = page.getByRole("list", { name: "Timeline" }).getByTestId("timeline-activity");
+  await expect(activity.first()).toContainText("created the task");
+
+  await page.getByRole("combobox", { name: "Priority" }).selectOption("urgent");
+  await expect(activity.last()).toContainText("changed priority from Medium to Urgent");
+  await page.reload();
+  await expect(activity.last()).toContainText("changed priority from Medium to Urgent");
 });

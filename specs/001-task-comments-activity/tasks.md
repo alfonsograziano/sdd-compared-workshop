@@ -83,16 +83,16 @@ description: "Task list for Task Comments and Activity Log"
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T015 [P] [US2] Unit tests in `tests/unit/activity.test.ts`: `createTask` records one entry with `field` null; `updateTask` records one entry per changed field for each of title, description, status, priority, labels (sorted JSON array of names) and due_date (null ↔ date); saving the same values records nothing; labels in a different order record nothing; `moveTask` to another column records a status entry; reorder in the same column records nothing; `listActivity` is oldest first
-- [ ] T016 [P] [US2] Unit tests for `describeActivity` in `tests/unit/activity.test.ts`: "created the task"; "changed priority from Medium to Urgent"; "changed status from Todo to In Progress"; title in quotes; "changed due date from no due date to <date>" and back; "added label Docs and removed label Bug"; description returns "changed the description" with old/new details
-- [ ] T017 [P] [US2] Extend `tests/e2e/comments.spec.ts`: change the priority on the task page and see "changed priority from … to Urgent" in the timeline
+- [X] T015 [P] [US2] Unit tests in `tests/unit/activity.test.ts`: `createTask` records one entry with `field` null; `updateTask` records one entry per changed field for each of title, description, status, priority, labels (sorted JSON array of names) and due_date (null ↔ date); saving the same values records nothing; labels in a different order record nothing; `moveTask` to another column records a status entry; reorder in the same column records nothing; `listActivity` is oldest first
+- [X] T016 [P] [US2] Unit tests for `describeActivity` in `tests/unit/activity.test.ts`: "created the task"; "changed priority from Medium to Urgent"; "changed status from Todo to In Progress"; title in quotes; "changed due date from no due date to <date>" and back; "added label Docs and removed label Bug"; description returns "changed the description" with old/new details
+- [X] T017 [P] [US2] Extend `tests/e2e/comments.spec.ts`: change the priority on the task page and see "changed priority from … to Urgent" in the timeline
 
 ### Implementation for User Story 2
 
-- [ ] T018 [US2] Implement `recordActivity(conn, taskId, entries, at)`, `listActivity(taskId)` and the pure `describeActivity(entry)` in `src/lib/activity.ts`, using `STATUS_LABELS`, `PRIORITY_LABELS` and `formatDueDate` for display (data-model.md value encoding)
-- [ ] T019 [US2] Record activity in `createTask`, `updateTask` and `moveTask` in `src/lib/tasks.ts`, inside their existing transactions, comparing old and new values so unchanged fields record nothing (research R1, R4)
-- [ ] T020 [US2] Include activity in `getTimeline` in `src/lib/timeline.ts`
-- [ ] T021 [US2] Render activity entries in `src/components/Timeline.tsx`: one muted line with the sentence and time; description changes as `<details>` with "Before"/"After" blocks; page view model in `src/app/tasks/[id]/page.tsx` carries the sentence and details
+- [X] T018 [US2] Implement `recordActivity(conn, taskId, entries, at)`, `listActivity(taskId)` and the pure `describeActivity(entry)` in `src/lib/activity.ts`, using `STATUS_LABELS`, `PRIORITY_LABELS` and `formatDueDate` for display (data-model.md value encoding)
+- [X] T019 [US2] Record activity in `createTask`, `updateTask` and `moveTask` in `src/lib/tasks.ts`, inside their existing transactions, comparing old and new values so unchanged fields record nothing (research R1, R4)
+- [X] T020 [US2] Include activity in `getTimeline` in `src/lib/timeline.ts`
+- [X] T021 [US2] Render activity entries in `src/components/Timeline.tsx`: one muted line with the sentence and time; description changes as `<details>` with "Before"/"After" blocks; page view model in `src/app/tasks/[id]/page.tsx` carries the sentence and details
 
 **Checkpoint**: User Stories 1 and 2 both work on their own
 
