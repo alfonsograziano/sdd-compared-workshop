@@ -1,5 +1,6 @@
 import { and, asc, eq, inArray, like, max, ne } from "drizzle-orm";
 import { diffTask, recordActivity } from "./activity";
+import { countComments } from "./comments";
 import { getDb, type Conn, type Db } from "./db";
 import { labels, taskLabels, tasks, type Label, type TaskRow } from "./db/schema";
 import {
@@ -13,10 +14,10 @@ import {
   type UpdateTaskInput,
 } from "./validation";
 
-export type Task = TaskRow & { labels: Label[] };
+export type Task = TaskRow & { labels: Label[]; commentCount: number };
 
-/** Loads the labels for a set of task rows and attaches them. */
-function withLabels(db: Conn, rows: TaskRow[]): Task[] {
+/** Loads the labels and comment counts for a set of task rows and attaches them. */
+function withDetails(db: Conn, rows: TaskRow[]): Task[] {
   if (rows.length === 0) return [];
   const links = db
     .select({ taskId: taskLabels.taskId, label: labels })
@@ -35,7 +36,11 @@ function withLabels(db: Conn, rows: TaskRow[]): Task[] {
   for (const { taskId, label } of links) {
     byTask.set(taskId, [...(byTask.get(taskId) ?? []), label]);
   }
-  return rows.map((row) => ({ ...row, labels: byTask.get(row.id) ?? [] }));
+  const comments = countComments(
+    rows.map((r) => r.id),
+    db,
+  );
+  return rows.map((row) => ({ ...row, labels: byTask.get(row.id) ?? [], commentCount: comments.get(row.id) ?? 0 }));
 }
 
 /** All tasks that match the filters, ordered by status column and position. */
@@ -58,12 +63,12 @@ export function listTasks(filters: TaskFilters = {}, db: Db = getDb()): Task[] {
     .where(and(...conditions))
     .orderBy(asc(tasks.status), asc(tasks.position), asc(tasks.id))
     .all();
-  return withLabels(db, rows);
+  return withDetails(db, rows);
 }
 
 export function getTask(id: number, db: Conn = getDb()): Task | null {
   const row = db.select().from(tasks).where(eq(tasks.id, id)).get();
-  return row ? withLabels(db, [row])[0] : null;
+  return row ? withDetails(db, [row])[0] : null;
 }
 
 export function listLabels(db: Db = getDb()): Label[] {
@@ -165,7 +170,7 @@ export function moveTask(id: number, input: MoveTaskInput, db: Db = getDb()): Ta
 }
 
 export function deleteTask(id: number, db: Db = getDb()): void {
-  // task_labels rows go away through ON DELETE CASCADE.
+  // task_labels, comments and task_activity rows go away through ON DELETE CASCADE.
   db.delete(tasks).where(eq(tasks.id, id)).run();
 }
 

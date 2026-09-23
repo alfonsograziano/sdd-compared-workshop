@@ -16,6 +16,7 @@ function task(fields: Partial<Task>): Task {
     createdAt: now,
     updatedAt: now,
     labels: [],
+    commentCount: 0,
     ...fields,
   };
 }

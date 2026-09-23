@@ -106,14 +106,14 @@ description: "Task list for Task Comments and Activity Log"
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T022 [P] [US3] Unit tests in `tests/unit/comments.test.ts` for `countComments` and for `commentCount` on `listTasks` and `getTask` (0 by default, updates after create and delete)
-- [ ] T023 [P] [US3] Extend `tests/e2e/comments.spec.ts`: after adding a comment, the board card and the list view row both show a comment count of 1 (constitution IV: every changed user flow has e2e coverage)
+- [X] T022 [P] [US3] Unit tests in `tests/unit/comments.test.ts` for `countComments` and for `commentCount` on `listTasks` and `getTask` (0 by default, updates after create and delete)
+- [X] T023 [P] [US3] Extend `tests/e2e/comments.spec.ts`: after adding a comment, the board card and the list view row both show a comment count of 1 (constitution IV: every changed user flow has e2e coverage)
 
 ### Implementation for User Story 3
 
-- [ ] T024 [US3] Implement `countComments(taskIds)` in `src/lib/comments.ts` (one grouped query) and add `commentCount` to the `Task` type and to `listTasks`/`getTask` in `src/lib/tasks.ts`
-- [ ] T025 [P] [US3] Add `CommentIcon` to `src/components/icons.tsx` and create `src/components/CommentCount.tsx` (renders nothing for 0; `aria-label="<n> comment(s)"`, `data-testid="comment-count"`)
-- [ ] T026 [US3] Show `CommentCount` on board cards in `src/components/TaskCard.tsx` and next to the title in `src/app/list/page.tsx`
+- [X] T024 [US3] Implement `countComments(taskIds)` in `src/lib/comments.ts` (one grouped query) and add `commentCount` to the `Task` type and to `listTasks`/`getTask` in `src/lib/tasks.ts`
+- [X] T025 [P] [US3] Add `CommentIcon` to `src/components/icons.tsx` and create `src/components/CommentCount.tsx` (renders nothing for 0; `aria-label="<n> comment(s)"`, `data-testid="comment-count"`)
+- [X] T026 [US3] Show `CommentCount` on board cards in `src/components/TaskCard.tsx` and next to the title in `src/app/list/page.tsx`
 
 **Checkpoint**: All user stories so far work on their own
 

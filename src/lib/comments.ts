@@ -1,5 +1,5 @@
-import { asc, eq } from "drizzle-orm";
-import { getDb, type Db } from "./db";
+import { asc, count, eq, inArray } from "drizzle-orm";
+import { getDb, type Conn, type Db } from "./db";
 import { comments, tasks, type Comment } from "./db/schema";
 import { commentBodySchema } from "./validation";
 
@@ -36,4 +36,16 @@ export function updateComment(id: number, body: string, db: Db = getDb()): Comme
 
 export function deleteComment(id: number, db: Db = getDb()): void {
   db.delete(comments).where(eq(comments.id, id)).run();
+}
+
+/** Number of comments for each of the given tasks, in one query. Tasks with none are left out. */
+export function countComments(taskIds: number[], db: Conn = getDb()): Map<number, number> {
+  if (taskIds.length === 0) return new Map();
+  const rows = db
+    .select({ taskId: comments.taskId, count: count() })
+    .from(comments)
+    .where(inArray(comments.taskId, taskIds))
+    .groupBy(comments.taskId)
+    .all();
+  return new Map(rows.map((r) => [r.taskId, r.count]));
 }
