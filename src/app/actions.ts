@@ -3,7 +3,15 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { createTask, deleteTask, moveTask, updateTask } from "@/lib/tasks";
+import {
+  addComment,
+  createTask,
+  deleteComment,
+  deleteTask,
+  moveTask,
+  updateComment,
+  updateTask,
+} from "@/lib/tasks";
 import type { CreateTaskInput, MoveTaskInput, UpdateTaskInput } from "@/lib/validation";
 
 // Every mutation in the app goes through one of these Server Actions.
@@ -12,6 +20,7 @@ import type { CreateTaskInput, MoveTaskInput, UpdateTaskInput } from "@/lib/vali
 export type ActionResult = { ok: true; id: number } | { ok: false; error: string };
 
 const taskId = z.number().int().positive();
+const commentId = z.number().int().positive();
 
 function run(fn: () => number): ActionResult {
   try {
@@ -42,4 +51,20 @@ export async function deleteTaskAction(id: number): Promise<void> {
   deleteTask(taskId.parse(id));
   revalidatePath("/", "layout");
   redirect("/");
+}
+
+export async function addCommentAction(id: number, body: string): Promise<ActionResult> {
+  return run(() => addComment(taskId.parse(id), body).id);
+}
+
+export async function updateCommentAction(id: number, body: string): Promise<ActionResult> {
+  return run(() => updateComment(commentId.parse(id), body).id);
+}
+
+export async function deleteCommentAction(id: number): Promise<ActionResult> {
+  return run(() => {
+    const cid = commentId.parse(id);
+    deleteComment(cid);
+    return cid;
+  });
 }

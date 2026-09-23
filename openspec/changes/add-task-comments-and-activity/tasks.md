@@ -28,9 +28,9 @@
 
 ## 5. Server Actions and UI
 
-- [ ] 5.1 Add `addCommentAction`, `updateCommentAction` and `deleteCommentAction` to `src/app/actions.ts` (validate ids, return `ActionResult`, revalidate) and verify `npm run typecheck` passes
-- [ ] 5.2 Build `src/components/Timeline.tsx` (activity sentences, comments with markdown, time, "edited" marker, edit and delete actions, comment box at the end) and render it under the description on `/tasks/[id]`; verify by opening a task in the dev server
-- [ ] 5.3 Show the comment count on `TaskCard` and on list rows only when it is above zero, and verify on `/` and `/list` in the dev server
+- [x] 5.1 Add `addCommentAction`, `updateCommentAction` and `deleteCommentAction` to `src/app/actions.ts` (validate ids, return `ActionResult`, revalidate) and verify `npm run typecheck` passes
+- [x] 5.2 Build `src/components/Timeline.tsx` (activity sentences, comments with markdown, time, "edited" marker, edit and delete actions, comment box at the end) and render it under the description on `/tasks/[id]`; verify by opening a task in the dev server
+- [x] 5.3 Show the comment count on `TaskCard` and on list rows only when it is above zero, and verify on `/` and `/list` in the dev server
 
 ## 6. Verification
 

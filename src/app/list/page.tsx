@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PriorityIcon, StatusIcon } from "@/components/icons";
+import { CommentCount, PriorityIcon, StatusIcon } from "@/components/icons";
 import { LabelPill } from "@/components/LabelPill";
 import { Toolbar } from "@/components/Toolbar";
 import { PRIORITY_LABELS, STATUS_LABELS } from "@/lib/constants";
@@ -60,12 +60,15 @@ export default async function ListPage({ searchParams }: PageProps<"/list">) {
           </thead>
           <tbody>
             {tasks.map((task) => (
-              <tr key={task.id} className="border-b border-line hover:bg-panel-hover">
+              <tr key={task.id} data-testid="task-row" className="border-b border-line hover:bg-panel-hover">
                 <td className="px-4 py-2 font-mono text-[12px] text-muted">{taskKey(task.id)}</td>
                 <td className="px-2 py-2">
-                  <Link href={`/tasks/${task.id}`} className="hover:underline">
-                    {task.title}
-                  </Link>
+                  <span className="flex items-center gap-3">
+                    <Link href={`/tasks/${task.id}`} className="hover:underline">
+                      {task.title}
+                    </Link>
+                    <CommentCount count={task.commentCount} />
+                  </span>
                 </td>
                 <td className="px-2 py-2">
                   <span className="flex items-center gap-2">

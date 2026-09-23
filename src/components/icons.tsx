@@ -68,3 +68,23 @@ export function PriorityIcon({ priority }: { priority: Priority }) {
     </svg>
   );
 }
+
+/** Speech bubble with a count, shown on cards and list rows when a task has comments. */
+export function CommentCount({ count }: { count: number }) {
+  if (count <= 0) return null;
+  const label = `${count} comment${count === 1 ? "" : "s"}`;
+  return (
+    <span data-testid="comment-count" aria-label={label} title={label} className="inline-flex shrink-0 items-center gap-1 text-[11px] text-muted">
+      <svg viewBox="0 0 14 14" className="size-3 shrink-0" aria-hidden="true">
+        <path
+          d="M2.5 3.5a1.5 1.5 0 0 1 1.5-1.5h6a1.5 1.5 0 0 1 1.5 1.5v4.5a1.5 1.5 0 0 1-1.5 1.5H6l-2.5 2v-2a1.5 1.5 0 0 1-1-1.5z"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.2"
+          strokeLinejoin="round"
+        />
+      </svg>
+      {count}
+    </span>
+  );
+}
