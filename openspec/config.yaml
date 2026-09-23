@@ -1,5 +1,12 @@
 schema: spec-driven
 
+context: |
+  App: a small Linear-style task manager (Kanban board, list view, task detail page). One user, no login, no auth.
+  Tech stack: Next.js 16 App Router, React 19, TypeScript (strict), Tailwind CSS 4, SQLite via better-sqlite3 + Drizzle ORM 0.45, zod 4, react-markdown + remark-gfm. Node.js 24.
+  Architecture: src/lib/db/schema.ts holds the Drizzle tables; src/lib/db/index.ts opens the DB and applies migrations on first use. src/lib/tasks.ts is the only module that reads or writes the DB; every function takes an optional db argument so tests can pass an in-memory one. src/lib/validation.ts holds zod schemas and the data layer parses every input with them. All mutations are Server Actions in src/app/actions.ts that call the data layer and then revalidatePath("/", "layout"). Pages are Server Components that call the data layer directly; interactive parts are Client Components in src/components/, which may only import types (never values) from src/lib/tasks.ts or src/lib/db/*.
+  Conventions: mutations use Server Actions, not route handlers. Schema changes = edit schema.ts, run npm run db:generate -- --name <what_changed>, commit the new file in drizzle/; never edit an old migration. Every new data-layer function gets a Vitest unit test in tests/unit/. UI colors come from the tokens in src/app/globals.css (bg, panel, panel-hover, line, fg, muted, accent); keep the UI dense. Pin dependency versions exactly.
+  Quality gates: npm run lint, npm run typecheck, npm run test must pass; npm run test:e2e (Playwright, own DB at data/e2e.db) when the UI changes; npm run build.
+
 # Project context (optional)
 # This is shown to AI when creating artifacts.
 # Add your tech stack, conventions, style guides, domain knowledge, etc.
