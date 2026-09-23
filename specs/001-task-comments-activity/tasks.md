@@ -127,11 +127,11 @@ description: "Task list for Task Comments and Activity Log"
 
 ### Tests for User Story 4 ⚠️
 
-- [ ] T027 [US4] Unit test in `tests/unit/comments.test.ts`: `deleteTask` removes the task's comments and activity rows through the cascade, and leaves another task's comments and activity in place
+- [X] T027 [US4] Unit test in `tests/unit/comments.test.ts`: `deleteTask` removes the task's comments and activity rows through the cascade, and leaves another task's comments and activity in place
 
 ### Implementation for User Story 4
 
-- [ ] T028 [US4] Confirm `deleteTask` in `src/lib/tasks.ts` needs no code change (cascade), update its comment, and make sure `seed()` in `src/lib/seed.ts` still clears everything (cascade from `tasks`)
+- [X] T028 [US4] Confirm `deleteTask` in `src/lib/tasks.ts` needs no code change (cascade), update its comment, and make sure `seed()` in `src/lib/seed.ts` still clears everything (cascade from `tasks`)
 
 **Checkpoint**: All user stories are complete
 
