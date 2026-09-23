@@ -1,4 +1,5 @@
 import { and, asc, eq, inArray, like, max, ne } from "drizzle-orm";
+import { diffTask, recordActivity } from "./activity";
 import { getDb, type Conn, type Db } from "./db";
 import { labels, taskLabels, tasks, type Label, type TaskRow } from "./db/schema";
 import {
@@ -94,6 +95,8 @@ export function createTask(input: CreateTaskInput, db: Db = getDb()): Task {
       .get();
 
     setLabels(tx, row.id, data.labelIds);
+    // One "created the task" entry; the starting values are visible on the task itself.
+    recordActivity(tx, row.id, [{ field: null, oldValue: null, newValue: null }]);
     return getTask(row.id, tx)!;
   });
 }
@@ -101,10 +104,11 @@ export function createTask(input: CreateTaskInput, db: Db = getDb()): Task {
 export function updateTask(id: number, input: UpdateTaskInput, db: Db = getDb()): Task {
   const { labelIds, ...fields } = updateTaskSchema.parse(input);
   return db.transaction((tx) => {
-    const current = tx.select().from(tasks).where(eq(tasks.id, id)).get();
+    const current = getTask(id, tx);
     if (!current) throw new Error(`Task ${id} not found`);
 
-    const changes: Partial<TaskRow> = { ...fields, updatedAt: new Date() };
+    const now = new Date();
+    const changes: Partial<TaskRow> = { ...fields, updatedAt: now };
     // A task that changes column through the form goes to the bottom of the new column.
     if (fields.status && fields.status !== current.status) {
       const last = tx
@@ -117,7 +121,10 @@ export function updateTask(id: number, input: UpdateTaskInput, db: Db = getDb())
 
     tx.update(tasks).set(changes).where(eq(tasks.id, id)).run();
     if (labelIds) setLabels(tx, id, labelIds);
-    return getTask(id, tx)!;
+    const updated = getTask(id, tx)!;
+    // Only fields whose value really changed get an activity entry.
+    recordActivity(tx, id, diffTask(current, updated), now);
+    return updated;
   });
 }
 
@@ -149,6 +156,10 @@ export function moveTask(id: number, input: MoveTaskInput, db: Db = getDb()): Ta
         .where(eq(tasks.id, taskId))
         .run();
     });
+    // Moving to another column is a status change; reordering inside a column is not tracked.
+    if (current.status !== status) {
+      recordActivity(tx, id, [{ field: "status", oldValue: current.status, newValue: status }], now);
+    }
     return getTask(id, tx)!;
   });
 }

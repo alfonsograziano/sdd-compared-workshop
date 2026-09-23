@@ -1,3 +1,4 @@
+import { describeActivity, listActivity } from "./activity";
 import { listComments } from "./comments";
 import { getDb, type Db } from "./db";
 import type { Activity, ActivityField, Comment } from "./db/schema";
@@ -47,23 +48,22 @@ export function mergeTimeline(comments: Comment[], activity: Activity[]): Timeli
 }
 
 export function getTimeline(taskId: number, db: Db = getDb()): TimelineItem[] {
-  return mergeTimeline(listComments(taskId, db), []);
+  return mergeTimeline(listComments(taskId, db), listActivity(taskId, db));
 }
 
 /** Formats timeline items for the task page. */
 export function toTimelineEntries(items: TimelineItem[]): TimelineEntry[] {
-  return items.flatMap((item): TimelineEntry[] => {
+  return items.map((item): TimelineEntry => {
     if (item.kind === "comment") {
-      return [
-        {
-          kind: "comment",
-          id: item.id,
-          at: formatDateTime(item.at),
-          body: item.body,
-          editedAt: item.editedAt ? formatDateTime(item.editedAt) : null,
-        },
-      ];
+      return {
+        kind: "comment",
+        id: item.id,
+        at: formatDateTime(item.at),
+        body: item.body,
+        editedAt: item.editedAt ? formatDateTime(item.editedAt) : null,
+      };
     }
-    return [];
+    const { text, details } = describeActivity(item);
+    return { kind: "activity", id: item.id, at: formatDateTime(item.at), text, ...(details && { details }) };
   });
 }
