@@ -8,23 +8,23 @@
 
 ## 2. Data layer: comments
 
-- [ ] 2.1 Add `commentBodySchema` (trimmed, 1 to 20,000 characters) to `src/lib/validation.ts` and verify with a unit test that empty and whitespace-only bodies are rejected
-- [ ] 2.2 Add `addComment`, `updateComment` (sets `editedAt` only when the body changes) and `deleteComment` to `src/lib/tasks.ts` and verify with unit tests for add, edit, no-op edit, empty edit, delete, and a missing task
-- [ ] 2.3 Add `commentCount` to the tasks returned by `listTasks` and `getTask` with one grouped query and verify with a unit test that counts are right for tasks with 0, 1 and several comments
+- [x] 2.1 Add `commentBodySchema` (trimmed, 1 to 20,000 characters) to `src/lib/validation.ts` and verify with a unit test that empty and whitespace-only bodies are rejected
+- [x] 2.2 Add `addComment`, `updateComment` (sets `editedAt` only when the body changes) and `deleteComment` to `src/lib/tasks.ts` and verify with unit tests for add, edit, no-op edit, empty edit, delete, and a missing task
+- [x] 2.3 Add `commentCount` to the tasks returned by `listTasks` and `getTask` with one grouped query and verify with a unit test that counts are right for tasks with 0, 1 and several comments
 
 ## 3. Data layer: activity
 
-- [ ] 3.1 Record a `created` entry in `createTask` and verify with a unit test that a new task has exactly one activity entry
-- [ ] 3.2 Diff title, description, status, priority, labels (as a sorted name list) and due date in `updateTask`, insert one entry per real change, and verify with one unit test per field plus a test that re-saving the same value records nothing
-- [ ] 3.3 Record a `status` entry in `moveTask` only when the moved task changes column and verify with unit tests for a cross-column move and a same-column reorder
-- [ ] 3.4 Verify with a unit test that label names in old entries survive deleting the label
-- [ ] 3.5 Verify with a unit test that deleting a task removes its comments and activity rows (cascade)
+- [x] 3.1 Record a `created` entry in `createTask` and verify with a unit test that a new task has exactly one activity entry
+- [x] 3.2 Diff title, description, status, priority, labels (as a sorted name list) and due date in `updateTask`, insert one entry per real change, and verify with one unit test per field plus a test that re-saving the same value records nothing
+- [x] 3.3 Record a `status` entry in `moveTask` only when the moved task changes column and verify with unit tests for a cross-column move and a same-column reorder
+- [x] 3.4 Verify with a unit test that label names in old entries survive deleting the label
+- [x] 3.5 Verify with a unit test that deleting a task removes its comments and activity rows (cascade)
 
 ## 4. Data layer: timeline
 
-- [ ] 4.1 Add `getTimeline(taskId)` that merges comments and activity oldest first with a stable tie-break, and verify with a unit test that created, comment and priority change come back in that order and that editing a comment does not move it
-- [ ] 4.2 Add `describeActivity` to `src/lib/format.ts` (display names for status and priority, "none" for empty values, formatted due dates, "changed the description", "created the task") and verify with unit tests for every field
-- [ ] 4.3 Make `seed()` reset the new tables and verify `npm run db:seed` still reports 12 tasks and the seed unit tests pass
+- [x] 4.1 Add `getTimeline(taskId)` that merges comments and activity oldest first with a stable tie-break, and verify with a unit test that created, comment and priority change come back in that order and that editing a comment does not move it
+- [x] 4.2 Add `describeActivity` to `src/lib/format.ts` (display names for status and priority, "none" for empty values, formatted due dates, "changed the description", "created the task") and verify with unit tests for every field
+- [x] 4.3 Make `seed()` reset the new tables and verify `npm run db:seed` still reports 12 tasks and the seed unit tests pass
 
 ## 5. Server Actions and UI
 

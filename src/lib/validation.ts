@@ -41,3 +41,6 @@ export const taskFiltersSchema = z.object({
   labelId: z.coerce.number().int().positive().optional(),
 });
 export type TaskFilters = z.infer<typeof taskFiltersSchema>;
+
+/** A comment body: markdown, not empty after trimming. */
+export const commentBodySchema = z.string().trim().min(1, "Comment can't be empty").max(20_000);

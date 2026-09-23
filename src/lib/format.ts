@@ -1,4 +1,5 @@
-import { PRIORITY_RANK, STATUSES } from "./constants";
+import { PRIORITY_LABELS, PRIORITY_RANK, STATUSES, STATUS_LABELS, type Priority, type Status } from "./constants";
+import type { ActivityRow } from "./db/schema";
 import type { Task } from "./tasks";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -35,4 +36,31 @@ export function sortTasks(tasks: Task[], sort: Sort): Task[] {
 
   const compare = { status: byStatus, priority: byPriority, due: byDue }[sort];
   return [...tasks].sort((a, b) => compare(a, b) || a.id - b.id);
+}
+
+/** How a stored activity value reads to the user. Empty values read as "none". */
+function activityValue(field: ActivityRow["field"], value: string | null): string {
+  if (value === null || value === "") return "none";
+  if (field === "status") return STATUS_LABELS[value as Status] ?? value;
+  if (field === "priority") return PRIORITY_LABELS[value as Priority] ?? value;
+  if (field === "due_date") return formatDueDate(value);
+  if (field === "title") return `"${value}"`;
+  return value;
+}
+
+const FIELD_NAMES: Record<Exclude<ActivityRow["field"], "created" | "description">, string> = {
+  title: "title",
+  status: "status",
+  priority: "priority",
+  labels: "labels",
+  due_date: "due date",
+};
+
+/** One activity entry as a sentence, for example "changed priority from Medium to Urgent". */
+export function describeActivity(entry: Pick<ActivityRow, "field" | "fromValue" | "toValue">): string {
+  const { field, fromValue, toValue } = entry;
+  if (field === "created") return "created the task";
+  // Descriptions can be long, so only say that it changed.
+  if (field === "description") return "changed the description";
+  return `changed ${FIELD_NAMES[field]} from ${activityValue(field, fromValue)} to ${activityValue(field, toValue)}`;
 }
