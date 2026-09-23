@@ -1,5 +1,9 @@
 # Tasks
 
+## This branch
+
+This is the `spec-kit` branch. It adds comments and an activity log to tasks, built with GitHub Spec Kit v1.0.10. Read [docs/BRANCH.md](docs/BRANCH.md) first: it lists the install command, the order to read the Spec Kit artifacts, every question the framework asked and the answer chosen, and where the run went off the script.
+
 A small task manager in the style of Linear. It has a Kanban board, a list view and a detail page for each task. It runs on your machine with a local SQLite file, has no login and is made for one user.
 
 The app is small on purpose. You can read the whole codebase in a few minutes.
