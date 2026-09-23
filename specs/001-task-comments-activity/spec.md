@@ -17,6 +17,16 @@ On the board and in the list, each task shows how many comments it has, if it ha
 
 Deleting a task deletes its comments and its activity. There is only one user, so there is no author field and no permissions."
 
+## Clarifications
+
+### Session 2026-09-23
+
+- Q: When a task is created, should the timeline show one "created the task" entry, or also one entry per starting value (title, status, priority and so on)? → A: One "created the task" entry only; the starting values are visible on the task itself.
+- Q: Should the timeline show every entry at once, or load older entries in pages? → A: Show every entry at once; one user and small tasks make paging unnecessary.
+- Q: Should comment and activity times be shown as exact times (like the existing "Created" time) or as relative times ("2 hours ago")? → A: Exact times, in the same format as the existing "Created" and "Updated" times.
+- Q: Where should the comment count appear in a list-view row? → A: Next to the task title, as a small comment icon and number.
+- Q: Should the "edited" marker also tell when the comment was last edited? → A: Yes; the marker shows the last edit time when hovered or focused.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Discuss a task with comments (Priority: P1)
@@ -143,7 +153,8 @@ activity entry for it remains.
   history did not exist yet; their timeline starts with the first change recorded after the
   feature ships.
 - A label that is later deleted from the system still reads correctly in old activity entries.
-- Timestamps shown for comments and activity use the same format as the rest of the task page.
+- Timestamps shown for comments and activity are exact times in the same format as the "Created"
+  and "Updated" times on the task page (not relative times such as "2 hours ago").
 
 ## Requirements *(mandatory)*
 
@@ -158,14 +169,16 @@ activity entry for it remains.
   FR-002 applies.
 - **FR-004**: Users MUST be able to delete any existing comment, after confirming.
 - **FR-005**: Each comment MUST show when it was written. A comment whose body was changed after
-  it was written MUST show an "edited" marker.
+  it was written MUST show an "edited" marker, and the marker MUST reveal the last edit time when
+  hovered or focused.
 - **FR-006**: Comment bodies MUST be displayed as rendered markdown, the same way task
   descriptions are.
 
 **Activity**
 
-- **FR-007**: The system MUST record an activity entry, without any user action, when a task is
-  created.
+- **FR-007**: The system MUST record exactly one activity entry, without any user action, when a
+  task is created ("created the task"). It MUST NOT record separate entries for the starting
+  values of the task's fields.
 - **FR-008**: The system MUST record one activity entry for each change to a task's title,
   description, status, priority, labels or due date, whatever part of the app made the change
   (task page, board drag and drop, or any other path).
@@ -187,11 +200,14 @@ activity entry for it remains.
 - **FR-015**: The task page MUST show one timeline under the description that merges comments and
   activity entries, ordered by time, oldest first and newest last.
 - **FR-016**: The form to add a new comment MUST be at the end of the timeline.
+- **FR-016a**: The timeline MUST show all of a task's comments and activity entries at once, with
+  no paging or "load more".
 
 **Counts**
 
 - **FR-017**: The board card and the list row of every task with at least one comment MUST show the
-  number of comments. Tasks with no comments MUST show no count.
+  number of comments as a small comment icon and number. In the list view it sits next to the
+  task title. Tasks with no comments MUST show no count.
 
 **Deletion and data**
 
@@ -242,6 +258,6 @@ activity entry for it remains.
   a "created" entry.
 - Comments are plain markdown with the same rendering rules as the description (no mentions,
   attachments, reactions or threads).
-- Times are shown in the same format and time zone as the "Created" and "Updated" times already on
-  the task page.
+- Times are shown as exact times, in the same format and time zone as the "Created" and "Updated"
+  times already on the task page.
 - 10,000 characters is a comfortable upper limit for one comment; the description allows 20,000.
