@@ -7,6 +7,9 @@ import * as schema from "./schema";
 
 export type Db = ReturnType<typeof createDb>;
 
+/** Either the database or an open transaction. */
+export type Conn = Db | Parameters<Parameters<Db["transaction"]>[0]>[0];
+
 const MIGRATIONS_FOLDER = path.join(process.cwd(), "drizzle");
 
 /**

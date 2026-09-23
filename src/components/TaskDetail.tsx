@@ -5,19 +5,22 @@ import { deleteTaskAction, updateTaskAction } from "@/app/actions";
 import { PRIORITIES, PRIORITY_LABELS, STATUSES, STATUS_LABELS, type Priority, type Status } from "@/lib/constants";
 import type { Label } from "@/lib/db/schema";
 import type { Task } from "@/lib/tasks";
+import type { TimelineEntry } from "@/lib/timeline";
 import type { UpdateTaskInput } from "@/lib/validation";
 import { PriorityIcon, StatusIcon } from "./icons";
 import { Markdown } from "./Markdown";
+import { Timeline } from "./Timeline";
 
 type Props = {
   task: Task;
   labels: Label[];
   createdAt: string;
   updatedAt: string;
+  timeline: TimelineEntry[];
 };
 
 /** Every field of a task, editable in place. Each change is saved right away. */
-export function TaskDetail({ task, labels, createdAt, updatedAt }: Props) {
+export function TaskDetail({ task, labels, createdAt, updatedAt, timeline }: Props) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [editingDescription, setEditingDescription] = useState(false);
@@ -92,6 +95,8 @@ export function TaskDetail({ task, labels, createdAt, updatedAt }: Props) {
               )}
             </div>
           )}
+
+          <Timeline taskId={task.id} entries={timeline} />
         </div>
       </article>
 

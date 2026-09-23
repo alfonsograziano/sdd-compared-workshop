@@ -59,17 +59,17 @@ description: "Task list for Task Comments and Activity Log"
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T007 [P] [US1] Unit tests for `listComments`, `createComment`, `updateComment`, `deleteComment` in `tests/unit/comments.test.ts`: trims body; rejects empty/whitespace and >10,000 chars; throws for a missing task or comment; `updatedAt` stays null on create and when saving the same text, is set when the body changes; `createdAt` never changes; list is oldest first; delete of a missing id is a no-op
-- [ ] T008 [P] [US1] Unit tests for `mergeTimeline` in `tests/unit/timeline.test.ts`: sorted by time ascending, activity before comment on the same time, then by id
-- [ ] T009 [P] [US1] E2E test in `tests/e2e/comments.spec.ts`: open a task, add a comment with `Needs **review**` (bold renders), edit it (shows "edited"), reload (still there), delete it with confirm (gone after reload)
+- [X] T007 [P] [US1] Unit tests for `listComments`, `createComment`, `updateComment`, `deleteComment` in `tests/unit/comments.test.ts`: trims body; rejects empty/whitespace and >10,000 chars; throws for a missing task or comment; `updatedAt` stays null on create and when saving the same text, is set when the body changes; `createdAt` never changes; list is oldest first; delete of a missing id is a no-op
+- [X] T008 [P] [US1] Unit tests for `mergeTimeline` in `tests/unit/timeline.test.ts`: sorted by time ascending, activity before comment on the same time, then by id
+- [X] T009 [P] [US1] E2E test in `tests/e2e/comments.spec.ts`: open a task, add a comment with `Needs **review**` (bold renders), edit it (shows "edited"), reload (still there), delete it with confirm (gone after reload)
 
 ### Implementation for User Story 1
 
-- [ ] T010 [US1] Implement `listComments`, `createComment`, `updateComment`, `deleteComment` in `src/lib/comments.ts`, each with an optional `db` argument, parsing the body with `commentBodySchema` (contracts/server-actions.md)
-- [ ] T011 [US1] Implement the `TimelineItem` type, `mergeTimeline` and `getTimeline` in `src/lib/timeline.ts` (comments only for now; activity is added in US2)
-- [ ] T012 [US1] Add `createCommentAction(taskId, body)`, `updateCommentAction(id, body)` and `deleteCommentAction(id)` to `src/app/actions.ts`, validating ids with zod and reusing `run()`
-- [ ] T013 [US1] Create the `Timeline` Client Component in `src/components/Timeline.tsx`: ordered list `aria-label="Timeline"`, comment entries with time, "edited" marker (focusable, `title`/`aria-label` "Edited <time>"), rendered markdown, "Edit comment" and "Delete comment" buttons, inline edit with "Save"/"Cancel", `confirm("Delete this comment?")`, and the "New comment" form with a "Comment" button that stays enabled; a validation error from the action (for example "Comment cannot be empty") is shown under the form (contracts/ui.md, FR-002)
-- [ ] T014 [US1] Load the timeline in `src/app/tasks/[id]/page.tsx`, map it to a serializable view model with `formatDateTime`, and render `<Timeline>` under the description in `src/components/TaskDetail.tsx`
+- [X] T010 [US1] Implement `listComments`, `createComment`, `updateComment`, `deleteComment` in `src/lib/comments.ts`, each with an optional `db` argument, parsing the body with `commentBodySchema` (contracts/server-actions.md)
+- [X] T011 [US1] Implement the `TimelineItem` type, `mergeTimeline` and `getTimeline` in `src/lib/timeline.ts` (comments only for now; activity is added in US2)
+- [X] T012 [US1] Add `createCommentAction(taskId, body)`, `updateCommentAction(id, body)` and `deleteCommentAction(id)` to `src/app/actions.ts`, validating ids with zod and reusing `run()`
+- [X] T013 [US1] Create the `Timeline` Client Component in `src/components/Timeline.tsx`: ordered list `aria-label="Timeline"`, comment entries with time, "edited" marker (focusable, `title`/`aria-label` "Edited <time>"), rendered markdown, "Edit comment" and "Delete comment" buttons, inline edit with "Save"/"Cancel", `confirm("Delete this comment?")`, and the "New comment" form with a "Comment" button that stays enabled; a validation error from the action (for example "Comment cannot be empty") is shown under the form (contracts/ui.md, FR-002)
+- [X] T014 [US1] Load the timeline in `src/app/tasks/[id]/page.tsx`, map it to a serializable view model with `formatDateTime`, and render `<Timeline>` under the description in `src/components/TaskDetail.tsx`
 
 **Checkpoint**: User Story 1 is fully functional and testable on its own
 
