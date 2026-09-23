@@ -2,9 +2,9 @@
 
 ## 1. Database
 
-- [ ] 1.1 Add the `comments` and `task_activity` tables to `src/lib/db/schema.ts` (columns, `ON DELETE CASCADE` to `tasks`, index on `(task_id, created_at)`, exported row types) and verify `npm run typecheck` passes
-- [ ] 1.2 Generate the migration with `npm run db:generate -- --name comments_and_activity` and verify a new file appears in `drizzle/` that only creates tables and indexes, with `0000_init.sql` unchanged
-- [ ] 1.3 Migrate a copy of a database seeded on master and verify every row in `tasks`, `labels` and `task_labels` is unchanged and both new tables are empty
+- [x] 1.1 Add the `comments` and `task_activity` tables to `src/lib/db/schema.ts` (columns, `ON DELETE CASCADE` to `tasks`, index on `(task_id, created_at)`, exported row types) and verify `npm run typecheck` passes
+- [x] 1.2 Generate the migration with `npm run db:generate -- --name comments_and_activity` and verify a new file appears in `drizzle/` that only creates tables and indexes, with `0000_init.sql` unchanged
+- [x] 1.3 Migrate a copy of a database seeded on master and verify every row in `tasks`, `labels` and `task_labels` is unchanged and both new tables are empty
 
 ## 2. Data layer: comments
 
