@@ -34,6 +34,6 @@
 
 ## 6. Verification
 
-- [ ] 6.1 Add a Playwright spec that adds, edits and deletes a comment, changes the priority and sees "changed priority from … to Urgent", and checks the comment count on the board card and in the list; verify `npm run test:e2e` passes
-- [ ] 6.2 Run `npm run lint`, `npm run typecheck`, `npm run test` and `npm run build` and verify all pass
-- [ ] 6.3 Start the built app on port 3052 and verify `/`, `/list` and `/tasks/1` return 200
+- [x] 6.1 Add a Playwright spec that adds, edits and deletes a comment, changes the priority and sees "changed priority from … to Urgent", and checks the comment count on the board card and in the list; verify `npm run test:e2e` passes
+- [x] 6.2 Run `npm run lint`, `npm run typecheck`, `npm run test` and `npm run build` and verify all pass
+- [x] 6.3 Start the built app on port 3052 and verify `/`, `/list` and `/tasks/1` return 200
