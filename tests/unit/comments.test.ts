@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { countComments, createComment, deleteComment, listComments, updateComment } from "@/lib/comments";
 import { createDb, type Db } from "@/lib/db";
-import { createTask, getTask, listTasks } from "@/lib/tasks";
+import { listActivity } from "@/lib/activity";
+import { comments, taskActivity } from "@/lib/db/schema";
+import { seed } from "@/lib/seed";
+import { createTask, deleteTask, getTask, listTasks, updateTask } from "@/lib/tasks";
 
 let db: Db;
 
@@ -118,5 +121,33 @@ describe("comment counts", () => {
     expect(listTasks({}, db).find((t) => t.id === task.id)!.commentCount).toBe(2);
     deleteComment(first.id, db);
     expect(getTask(task.id, db)!.commentCount).toBe(1);
+  });
+});
+
+describe("deleting a task", () => {
+  it("removes its comments and activity and leaves other tasks alone", () => {
+    const doomed = createTask({ title: "Doomed" }, db);
+    const kept = createTask({ title: "Kept" }, db);
+    for (const task of [doomed, kept]) {
+      createComment(task.id, "a comment", db);
+      updateTask(task.id, { priority: "high" }, db);
+    }
+
+    deleteTask(doomed.id, db);
+
+    expect(listComments(doomed.id, db)).toEqual([]);
+    expect(listActivity(doomed.id, db)).toEqual([]);
+    expect(listComments(kept.id, db)).toHaveLength(1);
+    expect(listActivity(kept.id, db)).toHaveLength(2);
+    expect(db.select().from(comments).all()).toHaveLength(1);
+    expect(db.select().from(taskActivity).all()).toHaveLength(2);
+  });
+
+  it("seed clears old comments and activity through the cascade", () => {
+    const task = createTask({ title: "Before seed" }, db);
+    createComment(task.id, "old", db);
+    seed(db);
+    expect(db.select().from(comments).all().some((c) => c.body === "old")).toBe(false);
+    expect(db.select().from(taskActivity).all()).toHaveLength(12);
   });
 });
