@@ -1,5 +1,9 @@
 # Tasks
 
+## This branch
+
+This is the `openspec` branch. It builds the feature in [docs/FEATURE.md](docs/FEATURE.md) with OpenSpec 1.13.1: propose, apply, archive, then read the spec the change left behind. Start with [docs/BRANCH.md](docs/BRANCH.md). It lists what OpenSpec installed, what it produced, the order to read it in, and every choice made along the way.
+
 A small task manager in the style of Linear. It has a Kanban board, a list view and a detail page for each task. It runs on your machine with a local SQLite file, has no login and is made for one user.
 
 The app is small on purpose. You can read the whole codebase in a few minutes.
