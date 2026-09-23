@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { createComment, deleteComment, listComments, updateComment } from "@/lib/comments";
+import { countComments, createComment, deleteComment, listComments, updateComment } from "@/lib/comments";
 import { createDb, type Db } from "@/lib/db";
-import { createTask } from "@/lib/tasks";
+import { createTask, getTask, listTasks } from "@/lib/tasks";
 
 let db: Db;
 
@@ -91,5 +91,32 @@ describe("deleteComment", () => {
 
   it("does nothing for a missing comment", () => {
     expect(() => deleteComment(999, db)).not.toThrow();
+  });
+});
+
+describe("comment counts", () => {
+  it("counts comments per task in one call", () => {
+    const a = createTask({ title: "A" }, db);
+    const b = createTask({ title: "B" }, db);
+    const c = createTask({ title: "C" }, db);
+    createComment(a.id, "1", db);
+    createComment(a.id, "2", db);
+    createComment(b.id, "3", db);
+    const counts = countComments([a.id, b.id, c.id], db);
+    expect(counts.get(a.id)).toBe(2);
+    expect(counts.get(b.id)).toBe(1);
+    expect(counts.get(c.id)).toBeUndefined();
+    expect(countComments([], db).size).toBe(0);
+  });
+
+  it("puts commentCount on listTasks and getTask, and follows creates and deletes", () => {
+    const task = createTask({ title: "x" }, db);
+    expect(task.commentCount).toBe(0);
+    const first = createComment(task.id, "one", db);
+    createComment(task.id, "two", db);
+    expect(getTask(task.id, db)!.commentCount).toBe(2);
+    expect(listTasks({}, db).find((t) => t.id === task.id)!.commentCount).toBe(2);
+    deleteComment(first.id, db);
+    expect(getTask(task.id, db)!.commentCount).toBe(1);
   });
 });

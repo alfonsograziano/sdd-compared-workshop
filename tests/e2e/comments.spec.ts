@@ -3,6 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 // Seeded tasks, each used by one test so the tests do not step on each other.
 const COMMENT_TASK = "Add CSV export to the reports page";
 const ACTIVITY_TASK = "Redesign the empty state for new workspaces"; // priority Medium in the seed
+const COUNT_TASK = "Keyboard shortcuts cheat sheet";
 
 function card(page: Page, title: string) {
   return page.getByTestId("task-card").filter({ hasText: title });
@@ -65,4 +66,24 @@ test("a priority change shows up in the timeline", async ({ page }) => {
   await expect(activity.last()).toContainText("changed priority from Medium to Urgent");
   await page.reload();
   await expect(activity.last()).toContainText("changed priority from Medium to Urgent");
+});
+
+test("board cards and list rows show how many comments a task has", async ({ page }) => {
+  await page.goto("/");
+  await expect(card(page, COUNT_TASK).getByTestId("comment-count")).toHaveCount(0);
+
+  await openTask(page, COUNT_TASK);
+  await page.getByLabel("New comment").fill("First thought");
+  await page.getByRole("button", { name: "Comment", exact: true }).click();
+  await expect(page.getByTestId("timeline-comment")).toHaveCount(1);
+
+  await page.goto("/");
+  await expect(card(page, COUNT_TASK).getByTestId("comment-count")).toHaveText("1");
+  await expect(card(page, COUNT_TASK).getByLabel("1 comment")).toBeVisible();
+
+  await page.goto("/list");
+  const row = page.getByRole("row").filter({ hasText: COUNT_TASK });
+  await expect(row.getByTestId("comment-count")).toHaveText("1");
+  const quiet = page.getByRole("row").filter({ hasText: ACTIVITY_TASK });
+  await expect(quiet.getByTestId("comment-count")).toHaveCount(0);
 });

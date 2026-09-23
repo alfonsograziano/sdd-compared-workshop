@@ -68,3 +68,17 @@ export function PriorityIcon({ priority }: { priority: Priority }) {
     </svg>
   );
 }
+
+export function CommentIcon() {
+  return (
+    <svg viewBox="0 0 14 14" className="size-3 shrink-0" aria-hidden="true">
+      <path
+        d="M2.5 3.2c0-.66.54-1.2 1.2-1.2h6.6c.66 0 1.2.54 1.2 1.2v4.6c0 .66-.54 1.2-1.2 1.2H6L3.6 11V9H3.7c-.66 0-1.2-.54-1.2-1.2z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
