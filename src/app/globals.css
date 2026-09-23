@@ -1,26 +1,72 @@
 @import "tailwindcss";
 
+/* A neutral palette in the spirit of Linear. Dark by default, light when the OS asks for it. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #0e0e10;
+  --panel: #151518;
+  --panel-hover: #1c1c20;
+  --line: #26262b;
+  --fg: #e6e6e9;
+  --muted: #8b8b94;
+  --accent: #6e79d6;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f7f7f8;
+    --panel: #ffffff;
+    --panel-hover: #f0f0f2;
+    --line: #e4e4e7;
+    --fg: #1b1b1f;
+    --muted: #6b6b75;
+    --accent: #5e6ad2;
+    color-scheme: light;
+  }
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-bg: var(--bg);
+  --color-panel: var(--panel);
+  --color-panel-hover: var(--panel-hover);
+  --color-line: var(--line);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-size: 13px;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Shared look for form controls. */
+.control {
+  @apply h-7 rounded-md border border-line bg-panel px-2 text-[13px] text-fg outline-none focus:border-accent;
 }
+
+.btn {
+  @apply inline-flex h-7 items-center gap-1.5 rounded-md border border-line bg-panel px-2.5 text-[13px] font-medium text-fg hover:bg-panel-hover disabled:opacity-50;
+}
+
+.btn-primary {
+  @apply border-transparent bg-accent text-white hover:bg-accent hover:brightness-110;
+}
+
+/* Rendered markdown in task descriptions. */
+.markdown {
+  @apply space-y-3 text-sm leading-6;
+}
+.markdown h1 { @apply text-lg font-semibold; }
+.markdown h2 { @apply text-base font-semibold; }
+.markdown h3 { @apply font-semibold; }
+.markdown ul { @apply list-disc pl-5; }
+.markdown ol { @apply list-decimal pl-5; }
+.markdown a { @apply text-accent underline; }
+.markdown code { @apply rounded bg-panel-hover px-1 py-0.5 font-mono text-[12px]; }
+.markdown pre { @apply overflow-x-auto rounded-md bg-panel-hover p-3; }
+.markdown pre code { @apply bg-transparent p-0; }
+.markdown blockquote { @apply border-l-2 border-line pl-3 text-muted; }
