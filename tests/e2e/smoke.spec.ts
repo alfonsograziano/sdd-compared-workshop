@@ -24,6 +24,8 @@ async function drag(page: Page, from: Locator, to: Locator) {
 test("create a task, move it, change its priority and filter for it", async ({ page }) => {
   await page.goto("/");
   await expect(card(page, "Login page crashes on Safari 17")).toBeVisible();
+  // Wait for hydration, so the keyboard shortcut and drag handlers are attached.
+  await page.waitForLoadState("networkidle");
 
   // Create with the "c" shortcut. New tasks land in Todo.
   await page.keyboard.press("c");
@@ -43,6 +45,7 @@ test("create a task, move it, change its priority and filter for it", async ({ p
   // Open it and change the priority.
   await card(page, TITLE).click();
   await expect(page).toHaveURL(/\/tasks\/\d+$/);
+  await page.waitForLoadState("networkidle");
   await page.getByRole("combobox", { name: "Priority" }).selectOption("urgent");
   await expect(page.getByText("Saving…")).toBeHidden();
   await page.reload();
@@ -50,6 +53,7 @@ test("create a task, move it, change its priority and filter for it", async ({ p
 
   // Back on the board, filter by priority and search the title.
   await page.goto("/");
+  await page.waitForLoadState("networkidle");
   await page.getByRole("combobox", { name: "Filter by priority" }).selectOption("urgent");
   await expect(page).toHaveURL(/priority=urgent/);
   await expect(card(page, TITLE)).toBeVisible();
