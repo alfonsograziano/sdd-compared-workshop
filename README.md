@@ -25,7 +25,7 @@ You need Node.js 24 (see `.nvmrc`).
 ```bash
 npm install
 npm run db:migrate   # creates data/app.db and its tables
-npm run db:seed      # fills it with 12 demo tasks (this deletes what is there)
+npm run db:seed      # fills it with 12 demo tasks and 2 comments (this deletes what is there)
 npm run dev          # http://localhost:3000
 ```
 
@@ -59,11 +59,14 @@ src/app/               pages (board, list, task detail) and Server Actions
   page.tsx             board view  (/)
   list/page.tsx        list view   (/list)
   tasks/[id]/page.tsx  task detail (/tasks/:id)
-src/components/        UI: Board, TaskCard, TaskDetail, Toolbar, NewTaskButton, ...
+src/components/        UI: Board, TaskCard, TaskDetail, Timeline, CommentCount, Toolbar, ...
 src/lib/
   db/schema.ts         Drizzle tables
   db/index.ts          opens the database and runs migrations
   tasks.ts             data access: list, get, create, update, move, delete
+  comments.ts          data access: list, create, update, delete and count comments
+  activity.ts          records task changes and turns them into sentences
+  timeline.ts          merges comments and activity for the task page
   validation.ts        zod schemas for every input
   constants.ts         statuses and priorities
   format.ts            small display and sort helpers
@@ -74,7 +77,9 @@ tests/e2e/             Playwright smoke test
 
 ## How it works
 
-Pages are React Server Components. They read data by calling `src/lib/tasks.ts` directly. Every change (create, edit, move, delete) is a Server Action in `src/app/actions.ts`. The action calls the data layer and then refreshes the page with `revalidatePath`. The data layer checks every input with zod before it writes.
+Pages are React Server Components. They read data by calling the data layer in `src/lib/` directly. Every change (create, edit, move, delete) is a Server Action in `src/app/actions.ts`. The action calls the data layer and then refreshes the page with `revalidatePath`. The data layer checks every input with zod before it writes.
+
+Each task page shows a timeline under the description: comments and activity, oldest first. Activity is written by the data layer itself (`createTask`, `updateTask`, `moveTask`), inside the same transaction as the change, so every way of changing a task is recorded. Board cards and list rows show a comment count.
 
 Filters (search, priority, label) live in the URL, so a filtered view can be shared or reloaded.
 
@@ -98,6 +103,18 @@ task_labels (many to many)
 task_id   -> tasks.id   (on delete cascade)
 label_id  -> labels.id  (on delete cascade)
 primary key (task_id, label_id)
+
+comments                            task_activity
+--------                            -------------
+id          integer, primary key    id          integer, primary key
+task_id     -> tasks.id (cascade)   task_id     -> tasks.id (cascade)
+body        text, markdown          field       title | description | status | priority
+created_at  timestamp (ms)                      | labels | due_date, or null for "created"
+updated_at  timestamp (ms), null    old_value   text, null
+            until the first edit    new_value   text, null
+                                    created_at  timestamp (ms)
 ```
+
+Activity values are stored as they were at the time: status and priority keys, `YYYY-MM-DD` dates, plain text, or a JSON array of label names for labels. So deleting a label later does not break old entries.
 
 When a card is dropped on the board, the app places it before its new neighbor and renumbers the column, so positions stay 0, 1, 2 and so on.

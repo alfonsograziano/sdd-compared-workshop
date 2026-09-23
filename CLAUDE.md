@@ -19,11 +19,12 @@ npm run db:seed      # reset data/app.db to demo data
 ## Architecture
 
 - `src/lib/db/schema.ts` holds the Drizzle tables. `src/lib/db/index.ts` opens the database and applies migrations on first use.
-- `src/lib/tasks.ts` is the only place that reads or writes the database. Every function takes an optional `db` argument so tests can pass an in-memory one.
+- `src/lib/tasks.ts`, `src/lib/comments.ts`, `src/lib/activity.ts` and `src/lib/timeline.ts` are the only places that read or write the database. Every function takes an optional `db` argument so tests can pass an in-memory one.
+- Activity is recorded inside `createTask`, `updateTask` and `moveTask`, in the same transaction as the change. A new way to change a task must go through these functions, or it will not show up in the timeline.
 - `src/lib/validation.ts` holds the zod schemas. The data layer parses every input with them.
 - `src/app/actions.ts` holds the Server Actions. All mutations go through them. They call the data layer, then `revalidatePath("/", "layout")`.
 - Pages (`src/app/**/page.tsx`) are Server Components that call the data layer directly. Interactive parts are Client Components in `src/components/`.
-- Client Components may only `import type` from `src/lib/tasks.ts` or `src/lib/db/*`, never values, because those modules load better-sqlite3.
+- Client Components may only `import type` from the data-layer modules above or `src/lib/db/*`, never values, because those modules load better-sqlite3.
 
 ## Conventions
 
