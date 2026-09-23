@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import type { Db } from "./db";
 import { labels, taskLabels, tasks } from "./db/schema";
 import type { Priority, Status } from "./constants";
+import { createComment } from "./comments";
 import { createTask } from "./tasks";
 
 const LABELS = [
@@ -114,14 +115,23 @@ const TASKS: SeedTask[] = [
   },
 ];
 
+/** Demo comments, by task title, so the board shows a comment count out of the box. */
+const COMMENTS: Record<string, string[]> = {
+  "Login page crashes on Safari 17": [
+    "Reproduced on Safari 17.4 on macOS. Chrome and Firefox are fine.",
+    "Looks like `structuredClone` is missing in the **login form** polyfills. Trying a fix now.",
+  ],
+};
+
 function daysFromToday(days: number): string {
   const date = new Date();
   date.setDate(date.getDate() + days);
   return date.toISOString().slice(0, 10);
 }
 
-/** Deletes everything and fills the database with demo labels and tasks. */
+/** Deletes everything and fills the database with demo labels, tasks and comments. */
 export function seed(db: Db) {
+  // Comments and activity go away with their tasks through ON DELETE CASCADE.
   db.delete(taskLabels).run();
   db.delete(tasks).run();
   db.delete(labels).run();
@@ -132,7 +142,7 @@ export function seed(db: Db) {
   const labelId = new Map(inserted.map((l) => [l.name, l.id]));
 
   for (const task of TASKS) {
-    createTask(
+    const created = createTask(
       {
         title: task.title,
         description: task.description ?? "",
@@ -143,6 +153,7 @@ export function seed(db: Db) {
       },
       db,
     );
+    for (const body of COMMENTS[task.title] ?? []) createComment(created.id, body, db);
   }
   return { labels: inserted.length, tasks: TASKS.length };
 }

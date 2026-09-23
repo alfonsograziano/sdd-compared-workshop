@@ -141,10 +141,10 @@ description: "Task list for Task Comments and Activity Log"
 
 **Purpose**: Demo data, docs and full verification
 
-- [ ] T029 [P] Add two demo comments to one seeded task in `src/lib/seed.ts` so the board shows a count out of the box
-- [ ] T030 [P] Update the data model and folder map in `README.md` and the architecture list in `CLAUDE.md` for the new tables and modules
-- [ ] T031 Run `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build` and `npm run test:e2e`; all must pass
-- [ ] T032 Run quickstart.md validation, including the migration check and a manual start of the app
+- [X] T029 [P] Add two demo comments to one seeded task in `src/lib/seed.ts` so the board shows a count out of the box
+- [X] T030 [P] Update the data model and folder map in `README.md` and the architecture list in `CLAUDE.md` for the new tables and modules
+- [X] T031 Run `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build` and `npm run test:e2e`; all must pass
+- [X] T032 Run quickstart.md validation, including the migration check and a manual start of the app
 
 ---
 

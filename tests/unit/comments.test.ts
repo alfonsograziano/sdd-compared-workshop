@@ -148,6 +148,7 @@ describe("deleting a task", () => {
     createComment(task.id, "old", db);
     seed(db);
     expect(db.select().from(comments).all().some((c) => c.body === "old")).toBe(false);
+    expect(db.select().from(comments).all()).toHaveLength(2); // the demo comments
     expect(db.select().from(taskActivity).all()).toHaveLength(12);
   });
 });
