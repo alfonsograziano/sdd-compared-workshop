@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { TaskDetail } from "@/components/TaskDetail";
 import { formatDateTime, taskKey } from "@/lib/format";
-import { getTask, listLabels } from "@/lib/tasks";
+import { getTask, getTimeline, listLabels } from "@/lib/tasks";
 
 export default async function TaskPage({ params }: PageProps<"/tasks/[id]">) {
   const id = Number((await params).id);
@@ -21,6 +21,7 @@ export default async function TaskPage({ params }: PageProps<"/tasks/[id]">) {
       <TaskDetail
         task={task}
         labels={listLabels()}
+        timeline={getTimeline(task.id)}
         createdAt={formatDateTime(task.createdAt)}
         updatedAt={formatDateTime(task.updatedAt)}
       />

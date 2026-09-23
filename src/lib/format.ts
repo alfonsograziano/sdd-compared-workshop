@@ -1,4 +1,5 @@
-import { PRIORITY_RANK, STATUSES } from "./constants";
+import { PRIORITY_LABELS, PRIORITY_RANK, STATUS_LABELS, STATUSES, type Priority, type Status } from "./constants";
+import type { Activity } from "./db/schema";
 import type { Task } from "./tasks";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -11,6 +12,30 @@ export function formatDueDate(dueDate: string): string {
 
 export function formatDateTime(date: Date): string {
   return date.toISOString().slice(0, 16).replace("T", " ") + " UTC";
+}
+
+/** The sentence shown for an activity entry, for example "changed priority from Medium to Urgent". */
+export function describeActivity(entry: Pick<Activity, "field" | "fromValue" | "toValue">): string {
+  const { field, fromValue, toValue } = entry;
+  const change = (name: string, show: (value: string) => string) =>
+    `changed ${name} from ${fromValue ? show(fromValue) : "none"} to ${toValue ? show(toValue) : "none"}`;
+
+  switch (field) {
+    case "created":
+      return "created the task";
+    case "description":
+      return "changed the description";
+    case "title":
+      return change("title", (v) => `"${v}"`);
+    case "status":
+      return change("status", (v) => STATUS_LABELS[v as Status] ?? v);
+    case "priority":
+      return change("priority", (v) => PRIORITY_LABELS[v as Priority] ?? v);
+    case "labels":
+      return change("labels", (v) => v);
+    case "dueDate":
+      return change("due date", formatDueDate);
+  }
 }
 
 export function isOverdue(task: Pick<Task, "dueDate" | "status">): boolean {

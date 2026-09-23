@@ -68,3 +68,26 @@ export function PriorityIcon({ priority }: { priority: Priority }) {
     </svg>
   );
 }
+
+/** Small speech bubble with the number of comments. Renders nothing for 0. */
+export function CommentCount({ count }: { count: number }) {
+  if (count <= 0) return null;
+  return (
+    <span
+      data-testid="comment-count"
+      aria-label={`${count} ${count === 1 ? "comment" : "comments"}`}
+      className="inline-flex items-center gap-1 text-[11px] text-muted"
+    >
+      <svg viewBox="0 0 14 14" className="size-3 shrink-0" aria-hidden="true">
+        <path
+          d="M2.5 3.5a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H6l-2.5 2v-2h0a1 1 0 0 1-1-1z"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.3"
+          strokeLinejoin="round"
+        />
+      </svg>
+      {count}
+    </span>
+  );
+}

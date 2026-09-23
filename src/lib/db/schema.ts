@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import { index, integer, primaryKey, sqliteTable, text } from "drizzle-orm/sqlite-core";
-import { PRIORITIES, STATUSES } from "../constants";
+import { ACTIVITY_FIELDS, PRIORITIES, STATUSES } from "../constants";
 
 export const tasks = sqliteTable(
   "tasks",
@@ -44,5 +44,47 @@ export const taskLabels = sqliteTable(
   (t) => [primaryKey({ columns: [t.taskId, t.labelId] })],
 );
 
+export const comments = sqliteTable(
+  "comments",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    taskId: integer("task_id")
+      .notNull()
+      .references(() => tasks.id, { onDelete: "cascade" }),
+    /** Markdown. */
+    body: text("body").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .notNull()
+      .default(sql`(unixepoch('subsec') * 1000)`),
+    /** Set the first time the body really changes; null means never edited. */
+    editedAt: integer("edited_at", { mode: "timestamp_ms" }),
+  },
+  (t) => [index("comments_task_id_idx").on(t.taskId)],
+);
+
+/**
+ * One entry per task creation and per real field change. Values are stored raw
+ * (for example "medium", "2026-09-24", or label names joined by ", ") and turned
+ * into words at display time.
+ */
+export const activities = sqliteTable(
+  "activities",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    taskId: integer("task_id")
+      .notNull()
+      .references(() => tasks.id, { onDelete: "cascade" }),
+    field: text("field", { enum: ACTIVITY_FIELDS }).notNull(),
+    fromValue: text("from_value"),
+    toValue: text("to_value"),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .notNull()
+      .default(sql`(unixepoch('subsec') * 1000)`),
+  },
+  (t) => [index("activities_task_id_idx").on(t.taskId)],
+);
+
 export type TaskRow = typeof tasks.$inferSelect;
 export type Label = typeof labels.$inferSelect;
+export type Comment = typeof comments.$inferSelect;
+export type Activity = typeof activities.$inferSelect;

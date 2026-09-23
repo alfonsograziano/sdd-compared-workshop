@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { filtersFromSearchParams } from "@/lib/filters";
-import { formatDueDate, isOverdue, sortTasks } from "@/lib/format";
+import { describeActivity, formatDueDate, isOverdue, sortTasks } from "@/lib/format";
 import type { Task } from "@/lib/tasks";
 
 function task(fields: Partial<Task>): Task {
@@ -16,6 +16,7 @@ function task(fields: Partial<Task>): Task {
     createdAt: now,
     updatedAt: now,
     labels: [],
+    commentCount: 0,
     ...fields,
   };
 }
@@ -57,5 +58,31 @@ describe("helpers", () => {
       labelId: 2,
     });
     expect(filtersFromSearchParams({ priority: "nope", label: "abc", q: "" })).toEqual({});
+  });
+});
+
+describe("describeActivity", () => {
+  const say = (field: Parameters<typeof describeActivity>[0]["field"], fromValue: string | null, toValue: string | null) =>
+    describeActivity({ field, fromValue, toValue });
+
+  it("describes a new task", () => {
+    expect(say("created", null, null)).toBe("created the task");
+  });
+
+  it("uses display names for priority and status", () => {
+    expect(say("priority", "medium", "urgent")).toBe("changed priority from Medium to Urgent");
+    expect(say("status", "todo", "done")).toBe("changed status from Todo to Done");
+    expect(say("status", "in_progress", "canceled")).toBe("changed status from In Progress to Canceled");
+  });
+
+  it("formats due dates and says none for an empty one", () => {
+    expect(say("dueDate", "2026-09-24", null)).toBe("changed due date from Sep 24 to none");
+    expect(say("dueDate", null, "2026-01-05")).toBe("changed due date from none to Jan 5");
+  });
+
+  it("describes title, labels and description", () => {
+    expect(say("title", "Old", "New")).toBe('changed title from "Old" to "New"');
+    expect(say("labels", null, "Bug, Docs")).toBe("changed labels from none to Bug, Docs");
+    expect(say("description", "old text", "new text")).toBe("changed the description");
   });
 });

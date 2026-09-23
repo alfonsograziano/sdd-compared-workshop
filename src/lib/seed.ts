@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import type { Db } from "./db";
-import { labels, taskLabels, tasks } from "./db/schema";
+import { activities, comments, labels, taskLabels, tasks } from "./db/schema";
 import type { Priority, Status } from "./constants";
 import { createTask } from "./tasks";
 
@@ -122,6 +122,8 @@ function daysFromToday(days: number): string {
 
 /** Deletes everything and fills the database with demo labels and tasks. */
 export function seed(db: Db) {
+  db.delete(comments).run();
+  db.delete(activities).run();
   db.delete(taskLabels).run();
   db.delete(tasks).run();
   db.delete(labels).run();

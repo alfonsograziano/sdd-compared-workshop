@@ -1,7 +1,19 @@
-import { and, asc, eq, inArray, like, max, ne } from "drizzle-orm";
+import { and, asc, count, eq, inArray, like, max, ne } from "drizzle-orm";
+import type { ActivityField } from "./constants";
 import { getDb, type Db } from "./db";
-import { labels, taskLabels, tasks, type Label, type TaskRow } from "./db/schema";
 import {
+  activities,
+  comments,
+  labels,
+  taskLabels,
+  tasks,
+  type Activity,
+  type Comment,
+  type Label,
+  type TaskRow,
+} from "./db/schema";
+import {
+  commentBodySchema,
   createTaskSchema,
   moveTaskSchema,
   taskFiltersSchema,
@@ -12,24 +24,28 @@ import {
   type UpdateTaskInput,
 } from "./validation";
 
-export type Task = TaskRow & { labels: Label[] };
+export type Task = TaskRow & { labels: Label[]; commentCount: number };
+
+/** One line in a task's timeline: a comment or an activity entry. */
+export type TimelineEntry = ({ kind: "comment" } & Comment) | ({ kind: "activity" } & Activity);
+
+/** Thrown when a task or comment id does not exist. */
+export class NotFoundError extends Error {
+  name = "NotFoundError";
+}
 
 /** Either the database or an open transaction. */
 type Conn = Db | Parameters<Parameters<Db["transaction"]>[0]>[0];
 
-/** Loads the labels for a set of task rows and attaches them. */
+/** Loads the labels and the comment count for a set of task rows and attaches them. */
 function withLabels(db: Conn, rows: TaskRow[]): Task[] {
   if (rows.length === 0) return [];
+  const ids = rows.map((r) => r.id);
   const links = db
     .select({ taskId: taskLabels.taskId, label: labels })
     .from(taskLabels)
     .innerJoin(labels, eq(taskLabels.labelId, labels.id))
-    .where(
-      inArray(
-        taskLabels.taskId,
-        rows.map((r) => r.id),
-      ),
-    )
+    .where(inArray(taskLabels.taskId, ids))
     .orderBy(asc(labels.name))
     .all();
 
@@ -37,7 +53,20 @@ function withLabels(db: Conn, rows: TaskRow[]): Task[] {
   for (const { taskId, label } of links) {
     byTask.set(taskId, [...(byTask.get(taskId) ?? []), label]);
   }
-  return rows.map((row) => ({ ...row, labels: byTask.get(row.id) ?? [] }));
+
+  const counts = db
+    .select({ taskId: comments.taskId, n: count() })
+    .from(comments)
+    .where(inArray(comments.taskId, ids))
+    .groupBy(comments.taskId)
+    .all();
+  const commentsByTask = new Map(counts.map((c) => [c.taskId, c.n]));
+
+  return rows.map((row) => ({
+    ...row,
+    labels: byTask.get(row.id) ?? [],
+    commentCount: commentsByTask.get(row.id) ?? 0,
+  }));
 }
 
 /** All tasks that match the filters, ordered by status column and position. */
@@ -97,6 +126,7 @@ export function createTask(input: CreateTaskInput, db: Db = getDb()): Task {
       .get();
 
     setLabels(tx, row.id, data.labelIds);
+    logActivity(tx, row.id, "created", null, null, row.createdAt);
     return getTask(row.id, tx)!;
   });
 }
@@ -104,22 +134,39 @@ export function createTask(input: CreateTaskInput, db: Db = getDb()): Task {
 export function updateTask(id: number, input: UpdateTaskInput, db: Db = getDb()): Task {
   const { labelIds, ...fields } = updateTaskSchema.parse(input);
   return db.transaction((tx) => {
-    const current = tx.select().from(tasks).where(eq(tasks.id, id)).get();
-    if (!current) throw new Error(`Task ${id} not found`);
+    const current = getTask(id, tx);
+    if (!current) throw new NotFoundError(`Task ${id} not found`);
 
-    const changes: Partial<TaskRow> = { ...fields, updatedAt: new Date() };
+    // Keep only the fields that really change. A save that changes nothing writes nothing.
+    const changed: Partial<Pick<TaskRow, TrackedField>> = {};
+    for (const field of TRACKED_FIELDS) {
+      const value = fields[field];
+      if (value !== undefined && value !== current[field]) Object.assign(changed, { [field]: value });
+    }
+    const labelsChange = labelIds !== undefined && !sameIds(labelIds, current.labels.map((l) => l.id));
+    if (Object.keys(changed).length === 0 && !labelsChange) return current;
+
+    const now = new Date();
+    const changes: Partial<TaskRow> = { ...changed, updatedAt: now };
     // A task that changes column through the form goes to the bottom of the new column.
-    if (fields.status && fields.status !== current.status) {
+    if (changed.status) {
       const last = tx
         .select({ value: max(tasks.position) })
         .from(tasks)
-        .where(eq(tasks.status, fields.status))
+        .where(eq(tasks.status, changed.status))
         .get();
       changes.position = (last?.value ?? -1) + 1;
     }
-
     tx.update(tasks).set(changes).where(eq(tasks.id, id)).run();
-    if (labelIds) setLabels(tx, id, labelIds);
+
+    for (const field of TRACKED_FIELDS) {
+      if (field in changed) logActivity(tx, id, field, current[field], changed[field] ?? null, now);
+    }
+    if (labelsChange) {
+      setLabels(tx, id, labelIds);
+      const after = getTask(id, tx)!;
+      logActivity(tx, id, "labels", labelNames(current.labels), labelNames(after.labels), now);
+    }
     return getTask(id, tx)!;
   });
 }
@@ -132,7 +179,7 @@ export function moveTask(id: number, input: MoveTaskInput, db: Db = getDb()): Ta
   const { status, beforeId } = moveTaskSchema.parse(input);
   return db.transaction((tx) => {
     const current = tx.select().from(tasks).where(eq(tasks.id, id)).get();
-    if (!current) throw new Error(`Task ${id} not found`);
+    if (!current) throw new NotFoundError(`Task ${id} not found`);
 
     const column = tx
       .select({ id: tasks.id })
@@ -152,12 +199,14 @@ export function moveTask(id: number, input: MoveTaskInput, db: Db = getDb()): Ta
         .where(eq(tasks.id, taskId))
         .run();
     });
+    // Reordering inside the same column is not recorded.
+    if (status !== current.status) logActivity(tx, id, "status", current.status, status, now);
     return getTask(id, tx)!;
   });
 }
 
 export function deleteTask(id: number, db: Db = getDb()): void {
-  // task_labels rows go away through ON DELETE CASCADE.
+  // task_labels, comments and activities rows go away through ON DELETE CASCADE.
   db.delete(tasks).where(eq(tasks.id, id)).run();
 }
 
@@ -169,4 +218,82 @@ function setLabels(db: Conn, taskId: number, labelIds: number[]) {
       .values(unique.map((labelId) => ({ taskId, labelId })))
       .run();
   }
+}
+
+/** The task fields whose changes show up in the timeline, besides labels. */
+const TRACKED_FIELDS = ["title", "description", "status", "priority", "dueDate"] as const;
+type TrackedField = (typeof TRACKED_FIELDS)[number];
+
+function logActivity(
+  db: Conn,
+  taskId: number,
+  field: ActivityField,
+  fromValue: string | null,
+  toValue: string | null,
+  createdAt: Date,
+) {
+  db.insert(activities).values({ taskId, field, fromValue, toValue, createdAt }).run();
+}
+
+function sameIds(a: number[], b: number[]): boolean {
+  const left = new Set(a);
+  const right = new Set(b);
+  return left.size === right.size && [...left].every((id) => right.has(id));
+}
+
+/** Label names as stored in an activity entry, or null when there are none. */
+function labelNames(list: Label[]): string | null {
+  return list.length === 0 ? null : list.map((l) => l.name).join(", ");
+}
+
+/** Comments and activity entries of a task, oldest first. */
+export function getTimeline(taskId: number, db: Db = getDb()): TimelineEntry[] {
+  const commentRows = db
+    .select()
+    .from(comments)
+    .where(eq(comments.taskId, taskId))
+    .orderBy(asc(comments.createdAt), asc(comments.id))
+    .all();
+  const activityRows = db
+    .select()
+    .from(activities)
+    .where(eq(activities.taskId, taskId))
+    .orderBy(asc(activities.createdAt), asc(activities.id))
+    .all();
+
+  const entries: TimelineEntry[] = [
+    ...activityRows.map((a) => ({ kind: "activity" as const, ...a })),
+    ...commentRows.map((c) => ({ kind: "comment" as const, ...c })),
+  ];
+  // A stable sort keeps each table's id order for entries written in the same millisecond.
+  return entries.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+}
+
+export function addComment(taskId: number, body: string, db: Db = getDb()): Comment {
+  const text = commentBodySchema.parse(body);
+  return db.transaction((tx) => {
+    const task = tx.select({ id: tasks.id }).from(tasks).where(eq(tasks.id, taskId)).get();
+    if (!task) throw new NotFoundError(`Task ${taskId} not found`);
+    return tx.insert(comments).values({ taskId, body: text }).returning().get();
+  });
+}
+
+/** Changes a comment's body. The "edited" time is set only when the body really changes. */
+export function updateComment(id: number, body: string, db: Db = getDb()): Comment {
+  const text = commentBodySchema.parse(body);
+  return db.transaction((tx) => {
+    const current = tx.select().from(comments).where(eq(comments.id, id)).get();
+    if (!current) throw new NotFoundError(`Comment ${id} not found`);
+    if (current.body === text) return current;
+    return tx
+      .update(comments)
+      .set({ body: text, editedAt: new Date() })
+      .where(eq(comments.id, id))
+      .returning()
+      .get();
+  });
+}
+
+export function deleteComment(id: number, db: Db = getDb()): void {
+  db.delete(comments).where(eq(comments.id, id)).run();
 }

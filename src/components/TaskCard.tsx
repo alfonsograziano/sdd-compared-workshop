@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { MouseEvent } from "react";
 import { formatDueDate, isOverdue, taskKey } from "@/lib/format";
 import type { Task } from "@/lib/tasks";
-import { PriorityIcon } from "./icons";
+import { CommentCount, PriorityIcon } from "./icons";
 import { LabelPill } from "./LabelPill";
 
 type Props = {
@@ -35,6 +35,9 @@ export function TaskCard({ task, onClick }: Props) {
             {formatDueDate(task.dueDate)}
           </span>
         )}
+        <span className="ml-auto">
+          <CommentCount count={task.commentCount} />
+        </span>
       </div>
     </Link>
   );

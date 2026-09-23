@@ -16,6 +16,13 @@ export const createTaskSchema = z.object({
 });
 export type CreateTaskInput = z.input<typeof createTaskSchema>;
 
+/** A comment is markdown. Whitespace around it is dropped, and an empty one is refused. */
+export const commentBodySchema = z
+  .string()
+  .trim()
+  .min(1, "Comment can't be empty")
+  .max(10_000, "Comment is too long (10000 characters max)");
+
 export const updateTaskSchema = z
   .object({
     title,

@@ -28,3 +28,7 @@ export const PRIORITY_RANK: Record<Priority, number> = {
   high: 3,
   urgent: 4,
 };
+
+/** What an activity entry records: the task being created, or a change to one field. */
+export const ACTIVITY_FIELDS = ["created", "title", "description", "status", "priority", "labels", "dueDate"] as const;
+export type ActivityField = (typeof ACTIVITY_FIELDS)[number];
