@@ -68,7 +68,7 @@ description: "Task list for Task Comments and Activity Log"
 - [ ] T010 [US1] Implement `listComments`, `createComment`, `updateComment`, `deleteComment` in `src/lib/comments.ts`, each with an optional `db` argument, parsing the body with `commentBodySchema` (contracts/server-actions.md)
 - [ ] T011 [US1] Implement the `TimelineItem` type, `mergeTimeline` and `getTimeline` in `src/lib/timeline.ts` (comments only for now; activity is added in US2)
 - [ ] T012 [US1] Add `createCommentAction(taskId, body)`, `updateCommentAction(id, body)` and `deleteCommentAction(id)` to `src/app/actions.ts`, validating ids with zod and reusing `run()`
-- [ ] T013 [US1] Create the `Timeline` Client Component in `src/components/Timeline.tsx`: ordered list `aria-label="Timeline"`, comment entries with time, "edited" marker (focusable, `title`/`aria-label` "Edited <time>"), rendered markdown, "Edit comment" and "Delete comment" buttons, inline edit with "Save"/"Cancel", `confirm("Delete this comment?")`, and the "New comment" form with a "Comment" button (contracts/ui.md)
+- [ ] T013 [US1] Create the `Timeline` Client Component in `src/components/Timeline.tsx`: ordered list `aria-label="Timeline"`, comment entries with time, "edited" marker (focusable, `title`/`aria-label` "Edited <time>"), rendered markdown, "Edit comment" and "Delete comment" buttons, inline edit with "Save"/"Cancel", `confirm("Delete this comment?")`, and the "New comment" form with a "Comment" button that stays enabled; a validation error from the action (for example "Comment cannot be empty") is shown under the form (contracts/ui.md, FR-002)
 - [ ] T014 [US1] Load the timeline in `src/app/tasks/[id]/page.tsx`, map it to a serializable view model with `formatDateTime`, and render `<Timeline>` under the description in `src/components/TaskDetail.tsx`
 
 **Checkpoint**: User Story 1 is fully functional and testable on its own
@@ -107,7 +107,7 @@ description: "Task list for Task Comments and Activity Log"
 ### Tests for User Story 3 ⚠️
 
 - [ ] T022 [P] [US3] Unit tests in `tests/unit/comments.test.ts` for `countComments` and for `commentCount` on `listTasks` and `getTask` (0 by default, updates after create and delete)
-- [ ] T023 [P] [US3] Extend `tests/e2e/comments.spec.ts`: after adding a comment, the board card shows a comment count of 1
+- [ ] T023 [P] [US3] Extend `tests/e2e/comments.spec.ts`: after adding a comment, the board card and the list view row both show a comment count of 1 (constitution IV: every changed user flow has e2e coverage)
 
 ### Implementation for User Story 3
 

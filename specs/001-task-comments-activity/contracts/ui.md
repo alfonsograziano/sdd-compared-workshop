@@ -18,8 +18,10 @@ names that the e2e test uses.
 - Editing: the body turns into a textarea (`aria-label="Edit comment"`) with "Save" and "Cancel".
 - Deleting asks `confirm("Delete this comment?")`.
 - New comment form at the end: textarea `aria-label="New comment"`, placeholder
-  "Leave a comment… (markdown)", button "Comment". The button is disabled while the text is
-  empty. Errors from the action show under the form in red text.
+  "Leave a comment… (markdown)", button "Comment". The button stays enabled, so an empty or
+  whitespace-only comment can be submitted and is rejected by the action; the error (for example
+  "Comment cannot be empty") shows under the form in red text (spec US1 scenario 5, FR-002).
+  The same applies to the edit form.
 
 ## Board card and list row — comment count
 
