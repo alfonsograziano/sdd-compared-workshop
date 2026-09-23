@@ -41,3 +41,9 @@ export const taskFiltersSchema = z.object({
   labelId: z.coerce.number().int().positive().optional(),
 });
 export type TaskFilters = z.infer<typeof taskFiltersSchema>;
+
+export const commentBodySchema = z
+  .string()
+  .trim()
+  .min(1, "Comment cannot be empty")
+  .max(10_000, "Comment is too long (max 10,000 characters)");

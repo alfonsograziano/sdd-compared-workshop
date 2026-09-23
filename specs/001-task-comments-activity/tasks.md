@@ -29,7 +29,7 @@ description: "Task list for Task Comments and Activity Log"
 
 **Purpose**: Confirm the starting point is green before changing anything
 
-- [ ] T001 Run `npm install`, `npm run lint`, `npm run typecheck` and `npm run test` on the unchanged code and confirm all pass
+- [X] T001 Run `npm install`, `npm run lint`, `npm run typecheck` and `npm run test` on the unchanged code and confirm all pass
 
 ---
 
@@ -39,11 +39,11 @@ description: "Task list for Task Comments and Activity Log"
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T002 Add the `comments` table to `src/lib/db/schema.ts`: `id` integer primary key autoincrement; `task_id` integer not null, FK → `tasks.id`, `ON DELETE CASCADE`; `body` text not null; `created_at` integer (`timestamp_ms`) not null, default `unixepoch('subsec') * 1000`; `updated_at` integer (`timestamp_ms`), null ("null until an edit changes the body"); index `comments_task_id_idx` on (`task_id`); export `Comment` type
-- [ ] T003 Add the `task_activity` table to `src/lib/db/schema.ts`: `id` integer primary key autoincrement; `task_id` integer not null, FK → `tasks.id`, `ON DELETE CASCADE`; `field` text null, "one of `title`, `description`, `status`, `priority`, `labels`, `due_date`; null means 'created the task'"; `old_value` text null; `new_value` text null; `created_at` integer (`timestamp_ms`) not null, default `unixepoch('subsec') * 1000`; index `task_activity_task_id_idx` on (`task_id`); export `ACTIVITY_FIELDS`, `ActivityField` and `Activity` types
-- [ ] T004 Generate the migration with `npm run db:generate -- --name comments_and_activity` and check that `drizzle/0001_comments_and_activity.sql` contains only `CREATE TABLE` and `CREATE INDEX` statements (no change to existing tables)
-- [ ] T005 [P] Add `commentBodySchema = z.string().trim().min(1, "Comment cannot be empty").max(10_000, "Comment is too long (max 10,000 characters)")` to `src/lib/validation.ts`
-- [ ] T006 Verify that a database created on the old schema keeps its tasks, labels and label links after the new migration runs (quickstart.md step 1)
+- [X] T002 Add the `comments` table to `src/lib/db/schema.ts`: `id` integer primary key autoincrement; `task_id` integer not null, FK → `tasks.id`, `ON DELETE CASCADE`; `body` text not null; `created_at` integer (`timestamp_ms`) not null, default `unixepoch('subsec') * 1000`; `updated_at` integer (`timestamp_ms`), null ("null until an edit changes the body"); index `comments_task_id_idx` on (`task_id`); export `Comment` type
+- [X] T003 Add the `task_activity` table to `src/lib/db/schema.ts`: `id` integer primary key autoincrement; `task_id` integer not null, FK → `tasks.id`, `ON DELETE CASCADE`; `field` text null, "one of `title`, `description`, `status`, `priority`, `labels`, `due_date`; null means 'created the task'"; `old_value` text null; `new_value` text null; `created_at` integer (`timestamp_ms`) not null, default `unixepoch('subsec') * 1000`; index `task_activity_task_id_idx` on (`task_id`); export `ACTIVITY_FIELDS`, `ActivityField` and `Activity` types
+- [X] T004 Generate the migration with `npm run db:generate -- --name comments_and_activity` and check that `drizzle/0001_comments_and_activity.sql` contains only `CREATE TABLE` and `CREATE INDEX` statements (no change to existing tables)
+- [X] T005 [P] Add `commentBodySchema = z.string().trim().min(1, "Comment cannot be empty").max(10_000, "Comment is too long (max 10,000 characters)")` to `src/lib/validation.ts`
+- [X] T006 Verify that a database created on the old schema keeps its tasks, labels and label links after the new migration runs (quickstart.md step 1)
 
 **Checkpoint**: Foundation ready — user story implementation can now begin
 

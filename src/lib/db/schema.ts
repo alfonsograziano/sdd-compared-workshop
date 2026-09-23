@@ -44,5 +44,48 @@ export const taskLabels = sqliteTable(
   (t) => [primaryKey({ columns: [t.taskId, t.labelId] })],
 );
 
+export const comments = sqliteTable(
+  "comments",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    taskId: integer("task_id")
+      .notNull()
+      .references(() => tasks.id, { onDelete: "cascade" }),
+    /** Markdown. */
+    body: text("body").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .notNull()
+      .default(sql`(unixepoch('subsec') * 1000)`),
+    /** Null until an edit changes the body, then the time of the last edit. */
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" }),
+  },
+  (t) => [index("comments_task_id_idx").on(t.taskId)],
+);
+
+/** The task fields whose changes are recorded in the activity log. */
+export const ACTIVITY_FIELDS = ["title", "description", "status", "priority", "labels", "due_date"] as const;
+export type ActivityField = (typeof ACTIVITY_FIELDS)[number];
+
+export const taskActivity = sqliteTable(
+  "task_activity",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    taskId: integer("task_id")
+      .notNull()
+      .references(() => tasks.id, { onDelete: "cascade" }),
+    /** Which field changed. Null means "created the task". */
+    field: text("field", { enum: ACTIVITY_FIELDS }),
+    /** Status and priority keys, YYYY-MM-DD dates, plain text, or a JSON array of label names. */
+    oldValue: text("old_value"),
+    newValue: text("new_value"),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .notNull()
+      .default(sql`(unixepoch('subsec') * 1000)`),
+  },
+  (t) => [index("task_activity_task_id_idx").on(t.taskId)],
+);
+
 export type TaskRow = typeof tasks.$inferSelect;
 export type Label = typeof labels.$inferSelect;
+export type Comment = typeof comments.$inferSelect;
+export type Activity = typeof taskActivity.$inferSelect;
