@@ -78,7 +78,7 @@ function CommentRow({ item }: { item: Extract<TimelineItem, { kind: "comment" }>
           <span className="ml-auto flex gap-1">
             <button
               type="button"
-              aria-label={`Edit comment from ${item.time}`}
+              aria-label={`Edit comment from ${item.time}: ${excerpt(item.body)}`}
               className="rounded px-1.5 hover:bg-panel-hover hover:text-fg"
               disabled={pending}
               onClick={() => {
@@ -91,7 +91,7 @@ function CommentRow({ item }: { item: Extract<TimelineItem, { kind: "comment" }>
             </button>
             <button
               type="button"
-              aria-label={`Delete comment from ${item.time}`}
+              aria-label={`Delete comment from ${item.time}: ${excerpt(item.body)}`}
               className="rounded px-1.5 hover:bg-panel-hover hover:text-red-400"
               disabled={pending}
               onClick={remove}
@@ -193,4 +193,10 @@ function submitOnModEnter(e: KeyboardEvent<HTMLTextAreaElement>, save: () => voi
     e.preventDefault();
     save();
   }
+}
+
+/** The start of a comment, on one line, so two comments from the same minute get different button names. */
+function excerpt(body: string): string {
+  const line = body.replace(/\s+/g, " ").trim();
+  return line.length > 40 ? `${line.slice(0, 40)}…` : line;
 }

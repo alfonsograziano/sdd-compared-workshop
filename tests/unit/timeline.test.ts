@@ -56,7 +56,7 @@ describe("getTimeline", () => {
     const timeline = summary(getTimeline(task.id, db));
     expect(timeline).toEqual([
       "created the task",
-      "changed the title from x to y",
+      "changed the title from “x” to “y”",
       "changed priority from No priority to Low",
       "comment: b",
       "comment: a",

@@ -70,8 +70,11 @@ function labelList(value: string | null): string {
   return Array.isArray(names) && names.length > 0 ? names.join(", ") : "none";
 }
 
-function dueDate(value: string | null): string {
-  return value ? formatDueDate(value) : "none";
+/** "Sep 24", or "Sep 24, 2027" when the change crosses a year, so the two sides never read the same. */
+function dueDate(value: string | null, other: string | null): string {
+  if (!value) return "none";
+  const withYear = other !== null && other.slice(0, 4) !== value.slice(0, 4);
+  return withYear ? `${formatDueDate(value)}, ${value.slice(0, 4)}` : formatDueDate(value);
 }
 
 function status(value: string | null): string {
@@ -88,7 +91,7 @@ export function describeActivity({ field, oldValue, newValue }: ActivityChange):
     case null:
       return "created the task";
     case "title":
-      return `changed the title from ${oldValue ?? ""} to ${newValue ?? ""}`;
+      return `changed the title from “${oldValue ?? ""}” to “${newValue ?? ""}”`;
     case "description":
       return "changed the description";
     case "status":
@@ -98,6 +101,6 @@ export function describeActivity({ field, oldValue, newValue }: ActivityChange):
     case "labels":
       return `changed labels from ${labelList(oldValue)} to ${labelList(newValue)}`;
     case "dueDate":
-      return `changed due date from ${dueDate(oldValue)} to ${dueDate(newValue)}`;
+      return `changed due date from ${dueDate(oldValue, newValue)} to ${dueDate(newValue, oldValue)}`;
   }
 }

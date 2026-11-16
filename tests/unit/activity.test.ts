@@ -31,7 +31,7 @@ describe("describeActivity", () => {
   it("words every kind of entry", () => {
     const cases: [Parameters<typeof describeActivity>[0], string][] = [
       [{ field: null, oldValue: null, newValue: null }, "created the task"],
-      [{ field: "title", oldValue: "Old", newValue: "New" }, "changed the title from Old to New"],
+      [{ field: "title", oldValue: "Old", newValue: "New" }, "changed the title from “Old” to “New”"],
       [{ field: "description", oldValue: "a", newValue: "b" }, "changed the description"],
       [{ field: "status", oldValue: "todo", newValue: "in_progress" }, "changed status from Todo to In Progress"],
       [{ field: "priority", oldValue: "medium", newValue: "urgent" }, "changed priority from Medium to Urgent"],
@@ -39,6 +39,9 @@ describe("describeActivity", () => {
       [{ field: "labels", oldValue: "[]", newValue: '["Bug"]' }, "changed labels from none to Bug"],
       [{ field: "dueDate", oldValue: null, newValue: "2026-09-24" }, "changed due date from none to Sep 24"],
       [{ field: "dueDate", oldValue: "2026-09-24", newValue: null }, "changed due date from Sep 24 to none"],
+      [{ field: "dueDate", oldValue: "2026-01-05", newValue: "2026-02-05" }, "changed due date from Jan 5 to Feb 5"],
+      // A change of year shows the year, so the two sides never read the same.
+      [{ field: "dueDate", oldValue: "2026-01-05", newValue: "2027-01-05" }, "changed due date from Jan 5, 2026 to Jan 5, 2027"],
     ];
     for (const [entry, sentence] of cases) {
       expect(describeActivity(entry)).toBe(sentence);
@@ -81,6 +84,13 @@ describe("updateTask activity", () => {
     expect(changes(task.id)).toEqual([]);
   });
 
+  it("leaves updatedAt alone when nothing changed", async () => {
+    const task = createTask({ title: "Same", priority: "low" }, db);
+    await new Promise((r) => setTimeout(r, 5));
+    const after = updateTask(task.id, { title: "Same", priority: "low" }, db);
+    expect(after.updatedAt.getTime()).toBe(task.updatedAt.getTime());
+  });
+
   it("words and stores each field change", () => {
     const task = createTask({ title: "Old", description: "before" }, db);
     updateTask(task.id, { title: " New " }, db);
@@ -89,7 +99,7 @@ describe("updateTask activity", () => {
     updateTask(task.id, { dueDate: "2026-09-24" }, db);
     updateTask(task.id, { dueDate: null }, db);
     expect(changes(task.id)).toEqual([
-      "changed the title from Old to New",
+      "changed the title from “Old” to “New”",
       "changed the description",
       "changed status from Backlog to Done",
       "changed due date from none to Sep 24",

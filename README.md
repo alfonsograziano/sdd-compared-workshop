@@ -81,7 +81,7 @@ tests/e2e/             Playwright tests (smoke test, comments and activity)
 
 Pages are React Server Components. They read data by calling `src/lib/tasks.ts` directly. Every change (create, edit, move, delete) is a Server Action in `src/app/actions.ts`. The action calls the data layer and then refreshes the page with `revalidatePath`. The data layer checks every input with zod before it writes.
 
-The task page shows a timeline under the description that mixes comments and activity, oldest first. `createTask`, `updateTask` and `moveTask` record one activity entry per changed field in the same transaction as the change, and a missing task or comment id throws `NotFoundError`, which the Server Actions return as `{ ok: false }`.
+The task page shows a timeline under the description that mixes comments and activity, oldest first. `createTask`, `updateTask` and `moveTask` record one activity entry per changed field in the same transaction as the change, and updating, moving or commenting on a missing task, or editing or deleting a missing comment, throws `NotFoundError`, which the Server Actions return as `{ ok: false }`. Deleting a missing task does nothing.
 
 Filters (search, priority, label) live in the URL, so a filtered view can be shared or reloaded.
 

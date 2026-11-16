@@ -41,6 +41,15 @@ test("comment on a task, edit and delete it, and see the activity", async ({ pag
   await page.getByRole("combobox", { name: "Priority" }).selectOption("high");
   await expect(timeline.getByText("changed priority from No priority to High")).toBeVisible();
 
+  // Typing a date digit by digit saves once, on blur, so it records one entry, not one per digit.
+  const dueDate = page.getByLabel("Due date");
+  await dueDate.focus();
+  // 09/09 reads the same day-first or month-first, so this works in any browser locale.
+  await dueDate.pressSequentially("09092026");
+  await dueDate.press("Enter");
+  await expect(timeline.getByText("changed due date from none to Sep 9")).toBeVisible();
+  await expect(timeline.getByText(/changed due date/)).toHaveCount(1);
+
   // An empty comment is rejected and the typed text stays.
   const box = page.getByLabel("New comment");
   await box.fill("   ");
@@ -63,12 +72,13 @@ test("comment on a task, edit and delete it, and see the activity", async ({ pag
   await expect(comment).toContainText("a changed comment");
   await expect(comment).toContainText("· edited");
 
-  // After a reload the timeline keeps the order: created, status change, priority change, comment.
+  // After a reload the timeline keeps the order: created, status, priority, due date, comment.
   await page.reload();
   await expect(timeline.locator("> li")).toHaveText([
     /created the task/,
     /changed status from Todo to In Progress/,
     /changed priority from No priority to High/,
+    /changed due date from none to Sep 9/,
     /a changed comment/,
   ]);
 
@@ -91,7 +101,7 @@ test("comment on a task, edit and delete it, and see the activity", async ({ pag
   await expect(timeline.getByTestId("comment")).toHaveCount(0);
   await page.reload();
   await expect(timeline.getByTestId("comment")).toHaveCount(0);
-  await expect(timeline.getByTestId("activity-entry")).toHaveCount(3);
+  await expect(timeline.getByTestId("activity-entry")).toHaveCount(4);
 
   // The list row no longer shows a count.
   await page.goto("/list");

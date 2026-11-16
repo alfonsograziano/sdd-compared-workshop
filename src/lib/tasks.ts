@@ -117,7 +117,7 @@ export function updateTask(id: number, input: UpdateTaskInput, db: Db = getDb())
     if (!current) throw new NotFoundError(`Task ${id} not found`);
 
     const now = new Date();
-    const changes: Partial<TaskRow> = { ...fields, updatedAt: now };
+    const changes: Partial<TaskRow> = { ...fields };
     // A task that changes column through the form goes to the bottom of the new column.
     if (fields.status && fields.status !== current.status) {
       const last = tx
@@ -128,12 +128,14 @@ export function updateTask(id: number, input: UpdateTaskInput, db: Db = getDb())
       changes.position = (last?.value ?? -1) + 1;
     }
 
-    tx.update(tasks).set(changes).where(eq(tasks.id, id)).run();
+    if (Object.keys(changes).length > 0) tx.update(tasks).set(changes).where(eq(tasks.id, id)).run();
     if (labelIds) setLabels(tx, id, labelIds);
-    const updated = getTask(id, tx)!;
     // One entry per field that actually changed, in the same transaction.
-    recordActivity(tx, id, diffTask(snapshot(current), snapshot(updated)), now);
-    return updated;
+    const diff = diffTask(snapshot(current), snapshot(getTask(id, tx)!));
+    if (diff.length === 0) return current;
+    recordActivity(tx, id, diff, now);
+    tx.update(tasks).set({ updatedAt: now }).where(eq(tasks.id, id)).run();
+    return getTask(id, tx)!;
   });
 }
 

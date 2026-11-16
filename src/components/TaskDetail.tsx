@@ -163,8 +163,17 @@ export function TaskDetail({ task, labels, createdAt, updatedAt, timeline }: Pro
             type="date"
             aria-label="Due date"
             className="control w-full"
-            value={task.dueDate ?? ""}
-            onChange={(e) => save({ dueDate: e.target.value || null })}
+            // Saved on blur, not on change: typing a year fires a change per digit,
+            // and each save would add an activity entry.
+            key={task.dueDate ?? ""}
+            defaultValue={task.dueDate ?? ""}
+            onBlur={(e) => {
+              const dueDate = e.target.value || null;
+              if (dueDate !== task.dueDate) save({ dueDate });
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") e.currentTarget.blur();
+            }}
           />
         </Field>
 
