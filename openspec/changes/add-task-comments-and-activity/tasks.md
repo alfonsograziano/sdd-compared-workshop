@@ -37,3 +37,13 @@
 - [x] 6.1 Add a Playwright spec that adds, edits and deletes a comment, changes the priority and sees "changed priority from … to Urgent", and checks the comment count on the board card and in the list; verify `npm run test:e2e` passes
 - [x] 6.2 Run `npm run lint`, `npm run typecheck`, `npm run test` and `npm run build` and verify all pass
 - [x] 6.3 Start the built app on port 3052 and verify `/`, `/list` and `/tasks/1` return 200
+
+## 7. Verify follow-ups
+
+- [ ] 7.1 Add a unit test that applies only `0000_init.sql` to a fresh database, inserts tasks, labels and label links, runs the full migrations, and verifies those rows are unchanged, both new tables are empty, and `getTimeline` is empty for each old task
+- [ ] 7.2 Let an empty or whitespace-only comment reach `addCommentAction` so the user sees the validation error instead of a disabled button, and verify in the Playwright spec that the error shows and the typed text stays
+- [ ] 7.3 Verify in the Playwright spec that clearing a comment while editing and saving shows the error and keeps the old body
+- [ ] 7.4 Verify in the Playwright spec that a comment with a `- item` list renders a list item
+- [ ] 7.5 Make `deleteCommentAction` return `{ ok: false }` when the comment no longer exists, and verify with a unit test of the data layer return value the action relies on
+- [ ] 7.6 Rename `withLabels` in `src/lib/tasks.ts` to `withDetails`, since it now also attaches comment counts, and verify `npm run typecheck` passes
+- [ ] 7.7 Run `npm run lint`, `npm run typecheck`, `npm run test` and `npm run test:e2e` and verify all pass

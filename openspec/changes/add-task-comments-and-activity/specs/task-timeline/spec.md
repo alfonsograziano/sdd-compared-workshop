@@ -7,7 +7,7 @@ Shows the whole story of a task in one place: a single timeline on the task deta
 ## ADDED Requirements
 
 ### Requirement: One timeline under the description
-The task detail page SHALL show one timeline below the task description that contains both the task's comments and its activity entries, ordered by time with the oldest first and the newest last. Entries with the same time MUST keep the order in which they were saved. A comment's place in the timeline is set by when it was written, not when it was last edited.
+The task detail page SHALL show one timeline below the task description that contains both the task's comments and its activity entries, ordered by time with the oldest first and the newest last. Entries with the same time MUST appear in a stable order: activity entries before comments, then in the order each kind was saved. A comment's place in the timeline is set by when it was written, not when it was last edited.
 
 #### Scenario: Mixed entries
 - **WHEN** a task was created, then commented on, then had its priority changed
