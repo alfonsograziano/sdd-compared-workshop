@@ -59,22 +59,29 @@ src/app/               pages (board, list, task detail) and Server Actions
   page.tsx             board view  (/)
   list/page.tsx        list view   (/list)
   tasks/[id]/page.tsx  task detail (/tasks/:id)
-src/components/        UI: Board, TaskCard, TaskDetail, Toolbar, NewTaskButton, ...
+src/components/        UI: Board, TaskCard, TaskDetail, Timeline, Toolbar, NewTaskButton, ...
+  Timeline.tsx         comments and activity under a task's description
 src/lib/
   db/schema.ts         Drizzle tables
   db/index.ts          opens the database and runs migrations
   tasks.ts             data access: list, get, create, update, move, delete
+  comments.ts          data access: list, create, edit, delete and count comments
+  activity.ts          records task changes and words them for the timeline
+  timeline.ts          merges a task's comments and activity, oldest first
+  errors.ts            NotFoundError for a missing task or comment
   validation.ts        zod schemas for every input
   constants.ts         statuses and priorities
   format.ts            small display and sort helpers
   seed.ts              demo data
 tests/unit/            Vitest tests for the data layer and helpers
-tests/e2e/             Playwright smoke test
+tests/e2e/             Playwright tests (smoke test, comments and activity)
 ```
 
 ## How it works
 
 Pages are React Server Components. They read data by calling `src/lib/tasks.ts` directly. Every change (create, edit, move, delete) is a Server Action in `src/app/actions.ts`. The action calls the data layer and then refreshes the page with `revalidatePath`. The data layer checks every input with zod before it writes.
+
+The task page shows a timeline under the description that mixes comments and activity, oldest first. `createTask`, `updateTask` and `moveTask` record one activity entry per changed field in the same transaction as the change, and a missing task or comment id throws `NotFoundError`, which the Server Actions return as `{ ok: false }`.
 
 Filters (search, priority, label) live in the URL, so a filtered view can be shared or reloaded.
 
@@ -98,6 +105,16 @@ task_labels (many to many)
 task_id   -> tasks.id   (on delete cascade)
 label_id  -> labels.id  (on delete cascade)
 primary key (task_id, label_id)
+
+comments                            task_activity
+--------                            -------------
+id          integer, primary key    id          integer, primary key
+task_id     -> tasks.id (cascade)   task_id     -> tasks.id (cascade)
+body        text, markdown          field       title | description | status | priority
+created_at  timestamp (ms)                      | labels | dueDate, null = created
+edited_at   timestamp (ms), null    old_value   text, as stored (keys, YYYY-MM-DD,
+            until the body changes  new_value   plain text, JSON array of label names)
+                                    created_at  timestamp (ms)
 ```
 
 When a card is dropped on the board, the app places it before its new neighbor and renumbers the column, so positions stay 0, 1, 2 and so on.

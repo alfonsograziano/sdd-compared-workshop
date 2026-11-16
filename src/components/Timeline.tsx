@@ -18,7 +18,7 @@ type Props = {
 export function Timeline({ taskId, items }: Props) {
   return (
     <section aria-label="Timeline" className="mt-10 border-t border-line pt-6">
-      <h2 className="mb-3 text-[13px] font-medium">Activity</h2>
+      <h2 className="mb-3 text-[13px] font-medium">Timeline</h2>
       <ol className="space-y-2" data-testid="timeline">
         {items.map((item) =>
           item.kind === "activity" ? (
@@ -35,10 +35,11 @@ export function Timeline({ taskId, items }: Props) {
 
 function ActivityRow({ item }: { item: Extract<TimelineItem, { kind: "activity" }> }) {
   return (
-    <li data-testid="activity-entry" className="flex items-center gap-2 px-1 text-[12px] text-muted">
-      <span className="size-1.5 shrink-0 rounded-full bg-muted/60" aria-hidden="true" />
-      <span className="min-w-0 truncate">{item.text}</span>
-      <span className="shrink-0">· {item.time}</span>
+    <li data-testid="activity-entry" className="flex items-baseline gap-2 px-1 text-[12px] text-muted">
+      <span className="size-1.5 shrink-0 -translate-y-px rounded-full bg-muted/60" aria-hidden="true" />
+      <span className="min-w-0 break-words">
+        {item.text} <span className="whitespace-nowrap">· {item.time}</span>
+      </span>
     </li>
   );
 }
@@ -77,7 +78,9 @@ function CommentRow({ item }: { item: Extract<TimelineItem, { kind: "comment" }>
           <span className="ml-auto flex gap-1">
             <button
               type="button"
+              aria-label={`Edit comment from ${item.time}`}
               className="rounded px-1.5 hover:bg-panel-hover hover:text-fg"
+              disabled={pending}
               onClick={() => {
                 setDraft(item.body);
                 setError(null);
@@ -88,6 +91,7 @@ function CommentRow({ item }: { item: Extract<TimelineItem, { kind: "comment" }>
             </button>
             <button
               type="button"
+              aria-label={`Delete comment from ${item.time}`}
               className="rounded px-1.5 hover:bg-panel-hover hover:text-red-400"
               disabled={pending}
               onClick={remove}
@@ -104,6 +108,7 @@ function CommentRow({ item }: { item: Extract<TimelineItem, { kind: "comment" }>
               aria-label="Edit comment"
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
+              readOnly={pending}
               onKeyDown={(e) => submitOnModEnter(e, save)}
               autoFocus
               rows={4}
@@ -167,6 +172,7 @@ function NewComment({ taskId }: { taskId: number }) {
         placeholder="Leave a comment… (markdown)"
         value={body}
         onChange={(e) => setBody(e.target.value)}
+        readOnly={pending}
         onKeyDown={(e) => submitOnModEnter(e, submit)}
         rows={3}
         className="w-full rounded-md border border-line bg-panel p-2 text-[13px] outline-none focus:border-accent"

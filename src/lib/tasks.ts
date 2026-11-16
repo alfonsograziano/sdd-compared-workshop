@@ -18,7 +18,7 @@ import {
 export type Task = TaskRow & { labels: Label[]; commentCount: number };
 
 /** Loads the labels and comment counts for a set of task rows and attaches them. */
-function withLabels(db: Conn, rows: TaskRow[]): Task[] {
+function withDetails(db: Conn, rows: TaskRow[]): Task[] {
   if (rows.length === 0) return [];
   const links = db
     .select({ taskId: taskLabels.taskId, label: labels })
@@ -68,12 +68,12 @@ export function listTasks(filters: TaskFilters = {}, db: Db = getDb()): Task[] {
     .where(and(...conditions))
     .orderBy(asc(tasks.status), asc(tasks.position), asc(tasks.id))
     .all();
-  return withLabels(db, rows);
+  return withDetails(db, rows);
 }
 
 export function getTask(id: number, db: Conn = getDb()): Task | null {
   const row = db.select().from(tasks).where(eq(tasks.id, id)).get();
-  return row ? withLabels(db, [row])[0] : null;
+  return row ? withDetails(db, [row])[0] : null;
 }
 
 export function listLabels(db: Db = getDb()): Label[] {

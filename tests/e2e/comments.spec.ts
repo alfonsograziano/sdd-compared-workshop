@@ -1,9 +1,10 @@
 import { expect, test, type Page } from "@playwright/test";
+import { card, column, drag } from "./helpers";
 
 const TITLE = `Comments test task ${Date.now()}`;
 
-function card(page: Page, title: string) {
-  return page.getByTestId("task-card").filter({ hasText: title });
+function listRow(page: Page, title: string) {
+  return page.getByRole("row").filter({ hasText: title });
 }
 
 test("comment on a task, edit and delete it, and see the activity", async ({ page }) => {
@@ -17,13 +18,24 @@ test("comment on a task, edit and delete it, and see the activity", async ({ pag
   await dialog.getByLabel("Title").fill(TITLE);
   await dialog.getByRole("button", { name: "Create task" }).click();
   await expect(dialog).toBeHidden();
+  await expect(card(column(page, "todo"), TITLE)).toBeVisible();
   await expect(card(page, TITLE).getByTestId("comment-count")).toHaveCount(0);
+
+  // A board drag to another column shows up as activity.
+  await drag(page, card(page, TITLE), column(page, "in_progress"));
+  await expect(card(column(page, "in_progress"), TITLE)).toBeVisible();
+  await page.waitForLoadState("networkidle");
+  await page.reload();
+  await expect(card(column(page, "in_progress"), TITLE)).toBeVisible();
 
   await card(page, TITLE).click();
   await expect(page).toHaveURL(/\/tasks\/\d+$/);
   await page.waitForLoadState("networkidle");
   const timeline = page.getByTestId("timeline");
-  await expect(timeline.getByTestId("activity-entry")).toHaveText([/created the task/]);
+  await expect(timeline.getByTestId("activity-entry")).toHaveText([
+    /created the task/,
+    /changed status from Todo to In Progress/,
+  ]);
 
   // A field change shows up as activity.
   await page.getByRole("combobox", { name: "Priority" }).selectOption("high");
@@ -51,17 +63,24 @@ test("comment on a task, edit and delete it, and see the activity", async ({ pag
   await expect(comment).toContainText("a changed comment");
   await expect(comment).toContainText("· edited");
 
-  // After a reload the timeline keeps the order: created, priority change, comment.
+  // After a reload the timeline keeps the order: created, status change, priority change, comment.
   await page.reload();
   await expect(timeline.locator("> li")).toHaveText([
     /created the task/,
+    /changed status from Todo to In Progress/,
     /changed priority from No priority to High/,
     /a changed comment/,
   ]);
 
   // The board card shows the comment count.
   await page.goto("/");
-  await expect(card(page, TITLE).getByTestId("comment-count")).toHaveText("1");
+  await expect(card(page, TITLE).getByTestId("comment-count")).toHaveText("1 comment");
+
+  // So does the list row.
+  await page.goto("/list");
+  await expect(listRow(page, TITLE).getByTestId("comment-count")).toHaveText("1 comment");
+  await page.goto("/");
+  await page.waitForLoadState("networkidle");
 
   // Delete the comment, confirming the browser dialog.
   await card(page, TITLE).click();
@@ -72,5 +91,10 @@ test("comment on a task, edit and delete it, and see the activity", async ({ pag
   await expect(timeline.getByTestId("comment")).toHaveCount(0);
   await page.reload();
   await expect(timeline.getByTestId("comment")).toHaveCount(0);
-  await expect(timeline.getByTestId("activity-entry")).toHaveCount(2);
+  await expect(timeline.getByTestId("activity-entry")).toHaveCount(3);
+
+  // The list row no longer shows a count.
+  await page.goto("/list");
+  await expect(listRow(page, TITLE)).toBeVisible();
+  await expect(listRow(page, TITLE).getByTestId("comment-count")).toHaveCount(0);
 });

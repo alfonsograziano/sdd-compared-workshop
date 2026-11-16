@@ -2,7 +2,7 @@
 title: 'Comments and activity log on tasks'
 type: 'feature'
 created: '2026-11-16'
-status: 'in-review'
+status: 'done'
 route: 'dispatch'
 review_loop_iteration: 0
 baseline_commit: '34075e85037435b902a4e3649ee12e37bc1c9881'
@@ -100,6 +100,35 @@ context:
 ## Spec Change Log
 
 ## Review Triage Log
+
+Pass 1 (review_loop_iteration 0). Layers: Blind Hunter (BH, 15 findings, floor 9), Edge Case Hunter (ECH, 7), Verification Gap (VG, 1). No intent_gap or bad_spec, so no loopback.
+
+| # | Layer | Finding | Verdict | Evidence | Route |
+|---|---|---|---|---|---|
+| 1 | VG | List-row comment count has no test | medium | Pre-verified gap: no test opens `/list`; removing `<CommentCount>` there fails nothing | patch |
+| 2 | BH | Same as #1 | medium | Same root cause as #1 | patch (with #1) |
+| 3 | BH | No e2e drags a card to another column, though an AC names the board drag | low | `comments.spec.ts` changes status only via the form; `moveTask` activity is unit-tested only | patch |
+| 4 | BH | README not updated for the new modules and tables | low | Folder map and "How it works" still name only `tasks.ts` | patch |
+| 5 | BH | `aria-label` on a role-less `<span>` in `CommentCount` | low | ARIA does not name generic elements; count reads as a bare number | patch |
+| 6 | BH | Long activity text truncated with no way to read it | low | `ActivityRow` uses `truncate`, no title; a 200-char title change is clipped | patch |
+| 7 | ECH | Same as #6 | low | Same root cause as #6 | patch (with #6) |
+| 8 | BH | Edit button enabled while a delete is pending | low | Only Delete has `disabled={pending}` | patch |
+| 9 | ECH | Same as #8 | low | Same root cause as #8 | patch (with #8) |
+| 10 | BH | Every comment's buttons named just "Edit"/"Delete" | low | Screen readers list identical controls | patch |
+| 11 | ECH | Text typed while a new comment saves is erased on success | low | `setBody("")` clears whatever is in the box after the await | patch |
+| 12 | ECH | Edits typed while an edit saves are dropped when the editor closes | low | `setEditing(false)` after the await; draft is discarded | patch (with #11, readOnly while pending) |
+| 13 | BH | Visible heading "Activity" vs `aria-label` "Timeline" | low | Two names for one region | patch |
+| 14 | BH | `withLabels` also attaches comment counts; name misleads | low | Developer harm: next reader of `tasks.ts` misses the count query | patch |
+| 15 | BH | `createCommentAction` calls its task-id parameter `id` | low | Sibling actions use `id` for a comment id; easy to pass the wrong one | patch |
+| 16 | BH | Malformed labels JSON crashes the task page | low | Only writer is `recordActivity` via `JSON.stringify`; needs a hand-edited DB, fix adds a guard | reject |
+| 17 | ECH | Same as #16 | low | Same as #16 | reject |
+| 18 | ECH | `field` outside `ACTIVITY_FIELDS` makes `describeActivity` return undefined | low | Only typed writer is `recordActivity`; needs a hand-edited DB, fix adds a branch | reject |
+| 19 | BH | Escape does not cancel a comment edit | false | Not a defect: Cancel button exists; nothing in the intent asks for a key binding | reject |
+| 20 | BH | Stale comment stays on screen after a not-found update/delete | false | Matrix row "Missing comment/task id" asks for `{ ok: false }` and an error shown, which is what happens | reject |
+| 21 | BH | Implementation Notes do not record an e2e result | low | Fix edits this build's spec | reject |
+| 22 | BH | `updateTask` runs two extra comment-count queries | low | Local SQLite, one task, sub-millisecond; fix adds a second loader | reject |
+| 23 | ECH | Board ignores `moveTaskAction`'s result: a drag of a task deleted elsewhere leaves a ghost card, no error | low | `Board.tsx` ignored the result before this change too (`master`); needs two tabs | defer |
+
 
 ## Verification
 

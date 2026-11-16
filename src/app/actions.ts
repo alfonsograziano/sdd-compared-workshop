@@ -13,7 +13,7 @@ import type { CommentBodyInput, CreateTaskInput, MoveTaskInput, UpdateTaskInput 
 
 export type ActionResult = { ok: true; id: number } | { ok: false; error: string };
 
-const taskId = z.number().int().positive();
+const taskIdSchema = z.number().int().positive();
 const commentId = z.number().int().positive();
 
 function run(fn: () => number): ActionResult {
@@ -38,21 +38,21 @@ export async function createTaskAction(input: CreateTaskInput): Promise<ActionRe
 }
 
 export async function updateTaskAction(id: number, input: UpdateTaskInput): Promise<ActionResult> {
-  return run(() => updateTask(taskId.parse(id), input).id);
+  return run(() => updateTask(taskIdSchema.parse(id), input).id);
 }
 
 export async function moveTaskAction(id: number, input: MoveTaskInput): Promise<ActionResult> {
-  return run(() => moveTask(taskId.parse(id), input).id);
+  return run(() => moveTask(taskIdSchema.parse(id), input).id);
 }
 
 export async function deleteTaskAction(id: number): Promise<void> {
-  deleteTask(taskId.parse(id));
+  deleteTask(taskIdSchema.parse(id));
   revalidatePath("/", "layout");
   redirect("/");
 }
 
-export async function createCommentAction(id: number, input: CommentBodyInput): Promise<ActionResult> {
-  return run(() => createComment(taskId.parse(id), input).id);
+export async function createCommentAction(taskId: number, input: CommentBodyInput): Promise<ActionResult> {
+  return run(() => createComment(taskIdSchema.parse(taskId), input).id);
 }
 
 export async function updateCommentAction(id: number, input: CommentBodyInput): Promise<ActionResult> {

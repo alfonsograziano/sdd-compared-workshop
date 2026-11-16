@@ -87,13 +87,10 @@ export function CommentIcon() {
 export function CommentCount({ count }: { count: number }) {
   if (count === 0) return null;
   return (
-    <span
-      data-testid="comment-count"
-      aria-label={`${count} ${count === 1 ? "comment" : "comments"}`}
-      className="inline-flex items-center gap-1 text-[11px] text-muted"
-    >
+    <span data-testid="comment-count" className="inline-flex items-center gap-1 text-[11px] text-muted">
       <CommentIcon />
       {count}
+      <span className="sr-only">{count === 1 ? " comment" : " comments"}</span>
     </span>
   );
 }
