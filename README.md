@@ -1,5 +1,9 @@
 # Tasks
 
+## This branch
+
+This is the `openspec` branch. It builds the feature in [docs/FEATURE.md](docs/FEATURE.md) with OpenSpec 1.13.1: propose, apply, verify, archive, then read the spec the change left behind. Start with [docs/BRANCH.md](docs/BRANCH.md). It lists what OpenSpec installed, what it produced, the order to read it in, and every choice made along the way.
+
 A small task manager in the style of Linear. It has a Kanban board, a list view and a detail page for each task. It runs on your machine with a local SQLite file, has no login and is made for one user.
 
 The app is small on purpose. You can read the whole codebase in a few minutes.
@@ -59,22 +63,24 @@ src/app/               pages (board, list, task detail) and Server Actions
   page.tsx             board view  (/)
   list/page.tsx        list view   (/list)
   tasks/[id]/page.tsx  task detail (/tasks/:id)
-src/components/        UI: Board, TaskCard, TaskDetail, Toolbar, NewTaskButton, ...
+src/components/        UI: Board, TaskCard, TaskDetail, Timeline, Toolbar, NewTaskButton, ...
 src/lib/
   db/schema.ts         Drizzle tables
   db/index.ts          opens the database and runs migrations
-  tasks.ts             data access: list, get, create, update, move, delete
+  tasks.ts             data access: tasks, comments, activity recording and the timeline
   validation.ts        zod schemas for every input
   constants.ts         statuses and priorities
-  format.ts            small display and sort helpers
+  format.ts            small display and sort helpers, and the activity sentences
   seed.ts              demo data
 tests/unit/            Vitest tests for the data layer and helpers
-tests/e2e/             Playwright smoke test
+tests/e2e/             Playwright tests (smoke test, comments and activity)
 ```
 
 ## How it works
 
 Pages are React Server Components. They read data by calling `src/lib/tasks.ts` directly. Every change (create, edit, move, delete) is a Server Action in `src/app/actions.ts`. The action calls the data layer and then refreshes the page with `revalidatePath`. The data layer checks every input with zod before it writes.
+
+Each task page shows a timeline under the description: comments and activity, oldest first. `createTask`, `updateTask` and `moveTask` in `src/lib/tasks.ts` record one activity entry per changed field, in the same transaction as the change. Board cards and list rows show a comment count.
 
 Filters (search, priority, label) live in the URL, so a filtered view can be shared or reloaded.
 
@@ -98,6 +104,16 @@ task_labels (many to many)
 task_id   -> tasks.id   (on delete cascade)
 label_id  -> labels.id  (on delete cascade)
 primary key (task_id, label_id)
+
+comments                            task_activity
+--------                            -------------
+id          integer, primary key    id          integer, primary key
+task_id     -> tasks.id (cascade)   task_id     -> tasks.id (cascade)
+body        text, markdown          field       created | title | description | status
+created_at  timestamp (ms)                      | priority | labels | due_date
+edited_at   timestamp (ms), null    from_value  text, null = none (codes, YYYY-MM-DD,
+            until the body changes  to_value    plain text, label names joined)
+                                    created_at  timestamp (ms)
 ```
 
 When a card is dropped on the board, the app places it before its new neighbor and renumbers the column, so positions stay 0, 1, 2 and so on.
