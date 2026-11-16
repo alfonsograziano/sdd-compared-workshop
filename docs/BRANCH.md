@@ -10,7 +10,7 @@ This branch builds the feature in [FEATURE.md](FEATURE.md) (comments and an acti
 | Version | v1.0.10 |
 | Agent | Claude Code (Spec Kit installs its commands as skills in `.claude/skills/speckit-*/SKILL.md`) |
 | Script type | `sh` (bash scripts in `.specify/scripts/bash/`) |
-| Date | 2026-09-23 |
+| Date | 2026-09-23 (install to implement), 2026-11-16 (converge and its follow-up) |
 
 Install command, run once at the repo root:
 
@@ -32,6 +32,11 @@ The git history shows one commit per Spec Kit step:
 6. `/speckit-tasks`: 32 tasks.
 7. `/speckit-analyze`: one CRITICAL and one HIGH finding, both fixed.
 8. `/speckit-implement`: five commits, one per phase or user story, then a polish commit.
+9. `/speckit-converge`: checked the finished code against the spec, plan, tasks and constitution, and appended 3 tasks as Phase 8.
+10. `/speckit-implement` again: completed T033–T035.
+11. `/speckit-converge` again: "Converged". It appended nothing, so it has no commit.
+
+Steps 9–11 were added on 2026-11-16. Spec Kit 1.0.10 lists converge as step 6 of its main flow, after implement, and the first run had skipped it.
 
 ## Read the artifacts in this order
 
@@ -43,7 +48,7 @@ The git history shows one commit per Spec Kit step:
 6. [specs/001-task-comments-activity/data-model.md](../specs/001-task-comments-activity/data-model.md): the two new tables.
 7. [specs/001-task-comments-activity/contracts/](../specs/001-task-comments-activity/contracts/): the Server Actions and the UI names that tests use.
 8. [specs/001-task-comments-activity/quickstart.md](../specs/001-task-comments-activity/quickstart.md): how to prove it works.
-9. [specs/001-task-comments-activity/tasks.md](../specs/001-task-comments-activity/tasks.md): the task list, all ticked.
+9. [specs/001-task-comments-activity/tasks.md](../specs/001-task-comments-activity/tasks.md): the task list, all ticked. Phase 8 at the end is what converge appended.
 10. The code: `git diff master..spec-kit -- src tests drizzle`.
 
 ## What the framework installed vs. what it produced
@@ -59,7 +64,7 @@ The git history shows one commit per Spec Kit step:
 | `.claude/skills/speckit-tasks/SKILL.md` | `tasks.md` |
 | `.claude/skills/speckit-analyze/SKILL.md` | no file (the command is read-only; its report is in the decision log below) |
 | `.claude/skills/speckit-implement/SKILL.md` | the code, tests, migration, and ticks in `tasks.md` |
-| `.claude/skills/speckit-converge/SKILL.md` (not used) | |
+| `.claude/skills/speckit-converge/SKILL.md` | `## Phase 8: Convergence` at the end of `tasks.md` (first run); nothing (second run, converged) |
 | `.claude/skills/speckit-taskstoissues/SKILL.md` (not used) | |
 | `.specify/scripts/bash/` (6 scripts: `check-prerequisites.sh`, `common.sh`, `create-new-feature.sh`, `resolve-template.sh`, `setup-plan.sh`, `setup-tasks.sh`) | |
 | `.specify/templates/` (5 templates: constitution, spec, plan, tasks, checklist) | |
@@ -131,6 +136,26 @@ Metrics from the report: 21 functional requirements plus 4 success criteria that
 | Checklist gate: "Some checklists have unchecked items. Proceed?" | Not asked. `requirements.md` was 16/16. | |
 | Ignore-file check: add missing patterns to `.gitignore` | Added `/dist/` and `*.log`. | The skill says to add missing standard patterns for Node.js. |
 
+### `/speckit-converge` (first run)
+
+The command only appends tasks. It assessed 21 FRs, 5 buildable success criteria, 20 acceptance scenarios, 11 edge cases, 14 plan decisions and 6 constitution principles.
+
+| ID | Gap | Severity | Finding | Task |
+|---|---|---|---|---|
+| F1 | missing | CRITICAL | `getTimeline` and `toTimelineEntries` in `src/lib/timeline.ts` had no unit tests. Constitution IV and CLAUDE.md require one for every data-layer function. | T033: 7 new unit tests |
+| F2 | partial | MEDIUM | The "edited" marker showed the edit time only in a `title` tooltip, which appears on hover but not on keyboard focus (FR-005 says "hovered or focused"). | T034: a CSS tooltip shown on hover and focus, `role="note"`, asserted in e2e |
+| F3 | unrequested | LOW | A Cmd/Ctrl+Enter submit shortcut that no artifact asked for. | T035: kept, and listed in `contracts/ui.md` |
+
+For T035 I answered as product owner: keep the shortcut. It is a common convenience and harms nothing.
+
+### `/speckit-converge` (second run)
+
+"✅ Converged — the implementation satisfies the spec, plan, and tasks." It checked 46 requirements, criteria and scenarios, all 35 tasks and 6 principles, and found nothing. It noted three small differences it did not count as findings:
+
+- The description `details` keys are `before`/`after`, but the contract says `old`/`new`.
+- `recordActivity` takes a required connection, because it always runs inside a transaction.
+- Error text uses `text-red-400`, which the contract asks for and the app already used.
+
 ### Other prompts
 
 | Prompt | Answer |
@@ -148,19 +173,22 @@ Metrics from the report: 21 functional requirements plus 4 success criteria that
 - **"Write tests first and make sure they fail"**: I did write each story's tests first and ran them. They failed because the modules did not exist yet, not because an assertion failed.
 - **Small extras beyond the task list.** Two helpers that no task names: `diffTask` in `src/lib/activity.ts` and `toTimelineEntries` in `src/lib/timeline.ts`. I also moved the `Conn` type from `tasks.ts` to `src/lib/db/index.ts` so the new modules could use it. I added two unit tests nobody asked for: an old label entry still reads well after the label is deleted, and `seed()` clears old comments.
 - **Old tasks have no "created" entry.** This follows the spec. Tasks that existed before the migration start with an empty history, because making one up would be false.
-- **Not used:** `/speckit-checklist`, `/speckit-converge` and `/speckit-taskstoissues`. They are optional. Note that Spec Kit 1.0.10 lists `converge` as step 6 of its main flow, after implement.
+- **Not used:** `/speckit-checklist` and `/speckit-taskstoissues`. Both are optional.
+- **Converge was added later.** The first run stopped after implement. On 2026-11-16, converge, the implement pass for its tasks and a second converge ran on top of the original commits. Those three steps ran in a separate git worktree, with `.specify/feature.json` recreated there. That file is gitignored, and the scripts need it to find the feature folder.
+- **A `package-lock.json` change was taken out of the history.** The first feature commit had also rewritten `package-lock.json`: on `master` it still has `^` ranges that `package.json` no longer has, and `npm install` fixes them. That belongs to `master`, not to this feature, and the other branches leave it out. The commit was rewritten without it, so `git diff master..spec-kit` no longer shows the lock file.
+- **e2e for converge's tasks ran with the system Chrome.** Playwright's own Chromium was not installed. `playwright.config.ts` was changed only for that run, then restored.
 
 ## Verification
 
-All run on this branch on 2026-09-23:
+All run on this branch on 2026-09-23, and lint, typecheck, unit tests, e2e and build again on 2026-11-16 after the converge tasks:
 
 | Check | Result |
 |---|---|
 | `npm run lint` | pass |
 | `npm run typecheck` | pass |
-| `npm run test` | 57 tests in 5 files pass (22 before this feature) |
+| `npm run test` | 64 tests in 5 files pass (22 before this feature; 7 added by converge's T033) |
 | `npm run build` | pass |
-| `npm run test:e2e` | 4 tests pass: add, edit and delete a comment; priority change in the timeline; comment count on board and list; the old smoke test |
+| `npm run test:e2e` | 4 tests pass: add, edit and delete a comment (now with the edited-marker focus check); priority change in the timeline; comment count on board and list; the old smoke test |
 | Migration | A database seeded on `master` was migrated. Every task, label and label link was identical before and after, and the two new tables were empty. |
 | Running app | `next start` on port 3051 against that migrated database: `/`, `/list` and `/tasks/1` answer 200, `/tasks/9999` answers 404. The server was stopped after. |
 
@@ -171,6 +199,6 @@ All run on this branch on 2026-09-23:
 | `constitution.md` | 104 lines |
 | `spec.md` | 263 lines (4 user stories, 21 functional requirements, 6 success criteria) |
 | `plan.md` | 123 lines, plus `research.md` 96, `data-model.md` 90, contracts 84, `quickstart.md` 52 |
-| `tasks.md` | 222 lines, 32 tasks (all done) |
+| `tasks.md` | 228 lines, 35 tasks (all done; T033–T035 from converge) |
 | All Spec Kit artifacts for this feature | about 1,070 lines |
-| Code changed | 16 files in `src/` (+598, -20), 5 files in `tests/` (+432), 3 migration files |
+| Code changed | 16 files in `src/` (+614, -20), 5 files in `tests/` (+535), 3 migration files |
