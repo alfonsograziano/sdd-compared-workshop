@@ -28,3 +28,7 @@ export const PRIORITY_RANK: Record<Priority, number> = {
   high: 3,
   urgent: 4,
 };
+
+/** Task fields that the activity log tracks. A null field in an entry means "created". */
+export const ACTIVITY_FIELDS = ["title", "description", "status", "priority", "labels", "dueDate"] as const;
+export type ActivityField = (typeof ACTIVITY_FIELDS)[number];

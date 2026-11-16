@@ -1,6 +1,9 @@
 import { and, asc, eq, inArray, like, max, ne } from "drizzle-orm";
-import { getDb, type Db } from "./db";
+import { CREATED, diffTask, recordActivity, type TaskSnapshot } from "./activity";
+import { countComments } from "./comments";
+import { getDb, type Conn, type Db } from "./db";
 import { labels, taskLabels, tasks, type Label, type TaskRow } from "./db/schema";
+import { NotFoundError } from "./errors";
 import {
   createTaskSchema,
   moveTaskSchema,
@@ -12,12 +15,9 @@ import {
   type UpdateTaskInput,
 } from "./validation";
 
-export type Task = TaskRow & { labels: Label[] };
+export type Task = TaskRow & { labels: Label[]; commentCount: number };
 
-/** Either the database or an open transaction. */
-type Conn = Db | Parameters<Parameters<Db["transaction"]>[0]>[0];
-
-/** Loads the labels for a set of task rows and attaches them. */
+/** Loads the labels and comment counts for a set of task rows and attaches them. */
 function withLabels(db: Conn, rows: TaskRow[]): Task[] {
   if (rows.length === 0) return [];
   const links = db
@@ -37,7 +37,15 @@ function withLabels(db: Conn, rows: TaskRow[]): Task[] {
   for (const { taskId, label } of links) {
     byTask.set(taskId, [...(byTask.get(taskId) ?? []), label]);
   }
-  return rows.map((row) => ({ ...row, labels: byTask.get(row.id) ?? [] }));
+  const commentCounts = countComments(
+    rows.map((r) => r.id),
+    db,
+  );
+  return rows.map((row) => ({
+    ...row,
+    labels: byTask.get(row.id) ?? [],
+    commentCount: commentCounts.get(row.id) ?? 0,
+  }));
 }
 
 /** All tasks that match the filters, ordered by status column and position. */
@@ -97,6 +105,7 @@ export function createTask(input: CreateTaskInput, db: Db = getDb()): Task {
       .get();
 
     setLabels(tx, row.id, data.labelIds);
+    recordActivity(tx, row.id, [CREATED], row.createdAt);
     return getTask(row.id, tx)!;
   });
 }
@@ -104,10 +113,11 @@ export function createTask(input: CreateTaskInput, db: Db = getDb()): Task {
 export function updateTask(id: number, input: UpdateTaskInput, db: Db = getDb()): Task {
   const { labelIds, ...fields } = updateTaskSchema.parse(input);
   return db.transaction((tx) => {
-    const current = tx.select().from(tasks).where(eq(tasks.id, id)).get();
-    if (!current) throw new Error(`Task ${id} not found`);
+    const current = getTask(id, tx);
+    if (!current) throw new NotFoundError(`Task ${id} not found`);
 
-    const changes: Partial<TaskRow> = { ...fields, updatedAt: new Date() };
+    const now = new Date();
+    const changes: Partial<TaskRow> = { ...fields, updatedAt: now };
     // A task that changes column through the form goes to the bottom of the new column.
     if (fields.status && fields.status !== current.status) {
       const last = tx
@@ -120,7 +130,10 @@ export function updateTask(id: number, input: UpdateTaskInput, db: Db = getDb())
 
     tx.update(tasks).set(changes).where(eq(tasks.id, id)).run();
     if (labelIds) setLabels(tx, id, labelIds);
-    return getTask(id, tx)!;
+    const updated = getTask(id, tx)!;
+    // One entry per field that actually changed, in the same transaction.
+    recordActivity(tx, id, diffTask(snapshot(current), snapshot(updated)), now);
+    return updated;
   });
 }
 
@@ -132,7 +145,7 @@ export function moveTask(id: number, input: MoveTaskInput, db: Db = getDb()): Ta
   const { status, beforeId } = moveTaskSchema.parse(input);
   return db.transaction((tx) => {
     const current = tx.select().from(tasks).where(eq(tasks.id, id)).get();
-    if (!current) throw new Error(`Task ${id} not found`);
+    if (!current) throw new NotFoundError(`Task ${id} not found`);
 
     const column = tx
       .select({ id: tasks.id })
@@ -152,12 +165,16 @@ export function moveTask(id: number, input: MoveTaskInput, db: Db = getDb()): Ta
         .where(eq(tasks.id, taskId))
         .run();
     });
+    // Reordering inside the same column is not a change.
+    if (status !== current.status) {
+      recordActivity(tx, id, [{ field: "status", oldValue: current.status, newValue: status }], now);
+    }
     return getTask(id, tx)!;
   });
 }
 
 export function deleteTask(id: number, db: Db = getDb()): void {
-  // task_labels rows go away through ON DELETE CASCADE.
+  // task_labels, comments and task_activity rows go away through ON DELETE CASCADE.
   db.delete(tasks).where(eq(tasks.id, id)).run();
 }
 
@@ -169,4 +186,15 @@ function setLabels(db: Conn, taskId: number, labelIds: number[]) {
       .values(unique.map((labelId) => ({ taskId, labelId })))
       .run();
   }
+}
+
+function snapshot(task: Task): TaskSnapshot {
+  return {
+    title: task.title,
+    description: task.description,
+    status: task.status,
+    priority: task.priority,
+    dueDate: task.dueDate,
+    labels: task.labels.map((l) => l.name),
+  };
 }

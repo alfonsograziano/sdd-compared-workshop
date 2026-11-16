@@ -68,3 +68,32 @@ export function PriorityIcon({ priority }: { priority: Priority }) {
     </svg>
   );
 }
+
+export function CommentIcon() {
+  return (
+    <svg viewBox="0 0 14 14" className="size-3 shrink-0" aria-hidden="true">
+      <path
+        d="M2.5 2.5h9a1 1 0 0 1 1 1v5.5a1 1 0 0 1-1 1H6l-2.75 2.25V10H2.5a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/** Comment count for cards and list rows. Renders nothing when there are no comments. */
+export function CommentCount({ count }: { count: number }) {
+  if (count === 0) return null;
+  return (
+    <span
+      data-testid="comment-count"
+      aria-label={`${count} ${count === 1 ? "comment" : "comments"}`}
+      className="inline-flex items-center gap-1 text-[11px] text-muted"
+    >
+      <CommentIcon />
+      {count}
+    </span>
+  );
+}

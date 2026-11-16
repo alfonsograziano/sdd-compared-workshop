@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { MouseEvent } from "react";
 import { formatDueDate, isOverdue, taskKey } from "@/lib/format";
 import type { Task } from "@/lib/tasks";
-import { PriorityIcon } from "./icons";
+import { CommentCount, PriorityIcon } from "./icons";
 import { LabelPill } from "./LabelPill";
 
 type Props = {
@@ -21,7 +21,8 @@ export function TaskCard({ task, onClick }: Props) {
     >
       <div className="mb-1 flex items-center gap-2 text-[11px] text-muted">
         <span className="font-mono">{taskKey(task.id)}</span>
-        <span className="ml-auto">
+        <span className="ml-auto flex items-center gap-2">
+          <CommentCount count={task.commentCount} />
           <PriorityIcon priority={task.priority} />
         </span>
       </div>

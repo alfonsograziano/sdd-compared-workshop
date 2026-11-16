@@ -1,13 +1,28 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { TaskDetail } from "@/components/TaskDetail";
+import type { TimelineItem } from "@/components/Timeline";
 import { formatDateTime, taskKey } from "@/lib/format";
 import { getTask, listLabels } from "@/lib/tasks";
+import { getTimeline } from "@/lib/timeline";
 
 export default async function TaskPage({ params }: PageProps<"/tasks/[id]">) {
   const id = Number((await params).id);
   const task = Number.isInteger(id) && id > 0 ? getTask(id) : null;
   if (!task) notFound();
+
+  // Dates are formatted here so server and browser render the same text.
+  const timeline: TimelineItem[] = getTimeline(task.id).map((entry) =>
+    entry.kind === "activity"
+      ? { kind: "activity", id: entry.id, time: formatDateTime(entry.createdAt), text: entry.text }
+      : {
+          kind: "comment",
+          id: entry.id,
+          time: formatDateTime(entry.createdAt),
+          body: entry.body,
+          edited: entry.editedAt !== null,
+        },
+  );
 
   return (
     <>
@@ -23,6 +38,7 @@ export default async function TaskPage({ params }: PageProps<"/tasks/[id]">) {
         labels={listLabels()}
         createdAt={formatDateTime(task.createdAt)}
         updatedAt={formatDateTime(task.updatedAt)}
+        timeline={timeline}
       />
     </>
   );

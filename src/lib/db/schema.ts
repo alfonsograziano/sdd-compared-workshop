@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import { index, integer, primaryKey, sqliteTable, text } from "drizzle-orm/sqlite-core";
-import { PRIORITIES, STATUSES } from "../constants";
+import { ACTIVITY_FIELDS, PRIORITIES, STATUSES } from "../constants";
 
 export const tasks = sqliteTable(
   "tasks",
@@ -44,5 +44,47 @@ export const taskLabels = sqliteTable(
   (t) => [primaryKey({ columns: [t.taskId, t.labelId] })],
 );
 
+export const comments = sqliteTable(
+  "comments",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    taskId: integer("task_id")
+      .notNull()
+      .references(() => tasks.id, { onDelete: "cascade" }),
+    /** Markdown. */
+    body: text("body").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .notNull()
+      .default(sql`(unixepoch('subsec') * 1000)`),
+    /** Set when a save changes the body. Null for a comment that was never edited. */
+    editedAt: integer("edited_at", { mode: "timestamp_ms" }),
+  },
+  (t) => [index("comments_task_idx").on(t.taskId)],
+);
+
+/**
+ * One row per recorded change to a task. Values are stored as they were:
+ * status/priority keys, YYYY-MM-DD, plain text, or a JSON array of sorted label names.
+ */
+export const taskActivity = sqliteTable(
+  "task_activity",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    taskId: integer("task_id")
+      .notNull()
+      .references(() => tasks.id, { onDelete: "cascade" }),
+    /** Which field changed. Null means the task was created. */
+    field: text("field", { enum: ACTIVITY_FIELDS }),
+    oldValue: text("old_value"),
+    newValue: text("new_value"),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .notNull()
+      .default(sql`(unixepoch('subsec') * 1000)`),
+  },
+  (t) => [index("task_activity_task_idx").on(t.taskId)],
+);
+
 export type TaskRow = typeof tasks.$inferSelect;
 export type Label = typeof labels.$inferSelect;
+export type Comment = typeof comments.$inferSelect;
+export type ActivityRow = typeof taskActivity.$inferSelect;

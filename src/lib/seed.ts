@@ -1,7 +1,8 @@
 import { sql } from "drizzle-orm";
 import type { Db } from "./db";
-import { labels, taskLabels, tasks } from "./db/schema";
+import { comments, labels, taskActivity, taskLabels, tasks } from "./db/schema";
 import type { Priority, Status } from "./constants";
+import { createComment } from "./comments";
 import { createTask } from "./tasks";
 
 const LABELS = [
@@ -21,6 +22,8 @@ type SeedTask = {
   labels: string[];
   /** Days from today. Leave out for no due date. */
   dueInDays?: number;
+  /** Markdown comments, oldest first. */
+  comments?: string[];
 };
 
 const TASKS: SeedTask[] = [
@@ -32,6 +35,10 @@ const TASKS: SeedTask[] = [
     priority: "urgent",
     labels: ["Bug"],
     dueInDays: 1,
+    comments: [
+      "Reproduced on Safari 17.2. Safari 16 is fine.",
+      "Looks like `structuredClone` is called before the polyfill loads. Fix in progress.",
+    ],
   },
   {
     title: "Add CSV export to the reports page",
@@ -62,6 +69,7 @@ const TASKS: SeedTask[] = [
     priority: "high",
     labels: ["Bug", "Backend"],
     dueInDays: 3,
+    comments: ["The query plan shows a **full table scan** on `items`."],
   },
   {
     title: "Keyboard shortcuts cheat sheet",
@@ -122,6 +130,8 @@ function daysFromToday(days: number): string {
 
 /** Deletes everything and fills the database with demo labels and tasks. */
 export function seed(db: Db) {
+  db.delete(comments).run();
+  db.delete(taskActivity).run();
   db.delete(taskLabels).run();
   db.delete(tasks).run();
   db.delete(labels).run();
@@ -131,8 +141,9 @@ export function seed(db: Db) {
   const inserted = db.insert(labels).values(LABELS).returning().all();
   const labelId = new Map(inserted.map((l) => [l.name, l.id]));
 
+  let commentCount = 0;
   for (const task of TASKS) {
-    createTask(
+    const created = createTask(
       {
         title: task.title,
         description: task.description ?? "",
@@ -143,6 +154,10 @@ export function seed(db: Db) {
       },
       db,
     );
+    for (const body of task.comments ?? []) {
+      createComment(created.id, { body }, db);
+      commentCount++;
+    }
   }
-  return { labels: inserted.length, tasks: TASKS.length };
+  return { labels: inserted.length, tasks: TASKS.length, comments: commentCount };
 }

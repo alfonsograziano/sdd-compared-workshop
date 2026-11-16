@@ -2,9 +2,10 @@
 title: 'Comments and activity log on tasks'
 type: 'feature'
 created: '2026-11-16'
-status: 'ready-for-dev'
+status: 'in-review'
 route: 'dispatch'
 review_loop_iteration: 0
+baseline_commit: '34075e85037435b902a4e3649ee12e37bc1c9881'
 context:
   - '{project-root}/_bmad-output/specs/spec-task-comments-and-activity-log/SPEC.md'
   - '{project-root}/_bmad-output/specs/spec-task-comments-and-activity-log/activity-entries.md'
@@ -71,16 +72,16 @@ context:
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] `src/lib/db/schema.ts`, `drizzle/0001_*` -- tables + migration + backfill -- storage for both entry kinds.
-- [ ] `src/lib/validation.ts` -- comment body schema -- one validation source.
-- [ ] `src/lib/activity.ts` -- record + describe activity per `activity-entries.md` -- single owner of wording.
-- [ ] `src/lib/tasks.ts` -- record activity in create/update/move; `commentCount` on `Task` -- every change path covered.
-- [ ] `src/lib/comments.ts`, `src/lib/timeline.ts` -- comment CRUD, merged timeline -- data layer stays the only DB access.
-- [ ] `src/app/actions.ts` -- create/update/delete comment actions; not-found → `{ ok: false }` -- mutations via actions.
-- [ ] `src/components/Timeline.tsx` (new), `TaskDetail.tsx`, `tasks/[id]/page.tsx` -- timeline UI with add/edit/delete; keep typed text on error -- CAP-1..CAP-5.
-- [ ] `src/components/TaskCard.tsx`, `src/app/list/page.tsx`, `icons.tsx` -- comment count when > 0 -- CAP-6.
-- [ ] `src/lib/seed.ts` -- clear new tables, demo comments.
-- [ ] `tests/unit/` -- every I/O matrix row, every field's wording, migration backfill on a pre-existing DB, cascade delete; `tests/e2e/comments.spec.ts` -- add/edit/delete comment, activity after an edit, count on board.
+- [x] `src/lib/db/schema.ts`, `drizzle/0001_*` -- tables + migration + backfill -- storage for both entry kinds.
+- [x] `src/lib/validation.ts` -- comment body schema -- one validation source.
+- [x] `src/lib/activity.ts` -- record + describe activity per `activity-entries.md` -- single owner of wording.
+- [x] `src/lib/tasks.ts` -- record activity in create/update/move; `commentCount` on `Task` -- every change path covered.
+- [x] `src/lib/comments.ts`, `src/lib/timeline.ts` -- comment CRUD, merged timeline -- data layer stays the only DB access.
+- [x] `src/app/actions.ts` -- create/update/delete comment actions; not-found → `{ ok: false }` -- mutations via actions.
+- [x] `src/components/Timeline.tsx` (new), `TaskDetail.tsx`, `tasks/[id]/page.tsx` -- timeline UI with add/edit/delete; keep typed text on error -- CAP-1..CAP-5.
+- [x] `src/components/TaskCard.tsx`, `src/app/list/page.tsx`, `icons.tsx` -- comment count when > 0 -- CAP-6.
+- [x] `src/lib/seed.ts` -- clear new tables, demo comments.
+- [x] `tests/unit/` -- every I/O matrix row, every field's wording, migration backfill on a pre-existing DB, cascade delete; `tests/e2e/comments.spec.ts` -- add/edit/delete comment, activity after an edit, count on board.
 
 **Acceptance Criteria:**
 - Given a database seeded on `master`, when the new migration runs, then tasks, labels and links are unchanged and each task has exactly one "created" entry at its own `created_at`.
@@ -88,6 +89,13 @@ context:
 - Given a comment and an activity entry, when the timeline renders, then they interleave by time, oldest first.
 
 ## Implementation Notes
+
+- Implementation subagent ran from the spec alone (about 7.5 minutes). Lint, typecheck and 57 unit tests pass.
+- Beyond the Code Map: `Conn` type moved to `src/lib/db/index.ts` (type only) so `activity.ts`, `comments.ts` and `timeline.ts` can take a transaction; new `src/lib/errors.ts` holds `NotFoundError`, which `run()` in `actions.ts` turns into `{ ok: false }` for task and comment actions.
+- `updateTask` diffs a snapshot of the task before and after the save, inside the transaction. Title compared after zod trims it; label sets compared as sorted names.
+- Timeline ties: activity before comments, then by id.
+- Seed adds 3 demo comments (2 on TSK-1, 1 on TSK-5).
+- e2e ran in a copy of the tree: a `next dev` was already running in this folder on :3000, and Next refuses a second dev server in the same folder.
 
 ## Spec Change Log
 

@@ -5,6 +5,11 @@ const title = z.string().trim().min(1, "Title is required").max(200);
 const description = z.string().max(20_000);
 const dueDate = z.iso.date().nullable();
 const labelIds = z.array(z.number().int().positive());
+const commentBody = z
+  .string()
+  .trim()
+  .min(1, "Comment can't be empty")
+  .max(20_000, "Comment is too long (20,000 characters max)");
 
 export const createTaskSchema = z.object({
   title,
@@ -41,3 +46,6 @@ export const taskFiltersSchema = z.object({
   labelId: z.coerce.number().int().positive().optional(),
 });
 export type TaskFilters = z.infer<typeof taskFiltersSchema>;
+
+export const commentBodySchema = z.object({ body: commentBody });
+export type CommentBodyInput = z.input<typeof commentBodySchema>;
