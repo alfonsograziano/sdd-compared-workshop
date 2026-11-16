@@ -48,6 +48,20 @@ test("add, edit and delete a comment", async ({ page }) => {
   await expect(comments.first()).toContainText("Needs two reviews");
   await expect(comments.first().getByText("edited", { exact: true })).toBeVisible();
 
+  // The marker reveals the last edit time on keyboard focus, not only on hover (FR-005).
+  const marker = comments.first().getByRole("note", { name: /^Edited \d{4}-\d{2}-\d{2} \d{2}:\d{2} UTC$/ });
+  const editTime = marker.getByTestId("edited-time");
+  await expect(editTime).toBeHidden();
+  await comments.first().getByRole("button", { name: "Edit comment" }).focus();
+  await page.keyboard.press("Shift+Tab");
+  await expect(marker).toBeFocused();
+  await expect(editTime).toBeVisible();
+  await expect(editTime).toHaveText(/^Edited \d{4}-\d{2}-\d{2} \d{2}:\d{2} UTC$/);
+  await marker.blur();
+  await expect(editTime).toBeHidden();
+  await marker.hover();
+  await expect(editTime).toBeVisible();
+
   // Delete, after confirming.
   await page.waitForLoadState("networkidle");
   page.once("dialog", (dialog) => dialog.accept());

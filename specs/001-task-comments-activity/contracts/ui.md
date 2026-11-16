@@ -13,8 +13,9 @@ names that the e2e test uses.
   `<details>` whose summary is "changed the description" and whose body shows "Before" and
   "After" blocks.
 - Comment entry: a panel with the time it was written, an "edited" marker when edited (a focusable
-  element whose `title` and `aria-label` are "Edited <time>"), the rendered markdown body, and two
-  buttons: "Edit comment" and "Delete comment".
+  element with `role="note"` and `aria-label` "Edited <time>" that shows "Edited <time>" in a
+  visible tooltip, `data-testid="edited-time"`, while hovered or focused, FR-005), the rendered
+  markdown body, and two buttons: "Edit comment" and "Delete comment".
 - Editing: the body turns into a textarea (`aria-label="Edit comment"`) with "Save" and "Cancel".
 - Deleting asks `confirm("Delete this comment?")`.
 - New comment form at the end: textarea `aria-label="New comment"`, placeholder
@@ -22,6 +23,7 @@ names that the e2e test uses.
   whitespace-only comment can be submitted and is rejected by the action; the error (for example
   "Comment cannot be empty") shows under the form in red text (spec US1 scenario 5, FR-002).
   The same applies to the edit form.
+- Both comment textareas (new and edit) also submit on Cmd+Enter or Ctrl+Enter, a common shortcut kept for convenience; the button stays the primary way to submit.
 
 ## Board card and list row — comment count
 

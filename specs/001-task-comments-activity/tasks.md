@@ -223,6 +223,6 @@ Task: "E2E test for add/edit/delete comment in tests/e2e/comments.spec.ts"
 
 ## Phase 8: Convergence
 
-- [ ] T033 CRITICAL: Add unit tests in `tests/unit/timeline.test.ts` for `getTimeline` (in-memory DB: returns the task's comments and activity merged oldest first, and nothing from other tasks) and `toTimelineEntries` (formatted `at`, `editedAt` null vs formatted, activity sentence, description `details`) from `src/lib/timeline.ts` per Constitution IV (missing)
-- [ ] T034 Make the "edited" marker in `src/components/Timeline.tsx` show the last edit time visibly on keyboard focus as well as on hover, give it a role that supports its accessible name, and assert the focus behavior in `tests/e2e/comments.spec.ts` per FR-005 (partial)
-- [ ] T035 Review the Cmd/Ctrl+Enter submit shortcut (`submitOnModEnter`) in `src/components/Timeline.tsx`, which no spec, plan or contract asks for, and either remove it or justify it per contracts/ui.md (unrequested)
+- [x] T033 CRITICAL: Add unit tests in `tests/unit/timeline.test.ts` for `getTimeline` (in-memory DB: returns the task's comments and activity merged oldest first, and nothing from other tasks) and `toTimelineEntries` (formatted `at`, `editedAt` null vs formatted, activity sentence, description `details`) from `src/lib/timeline.ts` per Constitution IV (missing)
+- [x] T034 Make the "edited" marker in `src/components/Timeline.tsx` show the last edit time visibly on keyboard focus as well as on hover, give it a role that supports its accessible name, and assert the focus behavior in `tests/e2e/comments.spec.ts` per FR-005 (partial)
+- [x] T035 Review the Cmd/Ctrl+Enter submit shortcut (`submitOnModEnter`) in `src/components/Timeline.tsx`, which no spec, plan or contract asks for, and either remove it or justify it per contracts/ui.md (unrequested)

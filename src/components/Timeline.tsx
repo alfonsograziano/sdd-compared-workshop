@@ -84,16 +84,7 @@ function CommentEntry({ comment }: { comment: CommentView }) {
     <li data-testid="timeline-comment" className="rounded-md border border-line bg-panel p-3">
       <div className="mb-1.5 flex items-center gap-2 text-[11px] text-muted">
         <span>{comment.at}</span>
-        {comment.editedAt && (
-          <span
-            tabIndex={0}
-            title={`Edited ${comment.editedAt}`}
-            aria-label={`Edited ${comment.editedAt}`}
-            className="cursor-default rounded outline-none focus:text-fg"
-          >
-            edited
-          </span>
-        )}
+        {comment.editedAt && <EditedMarker editedAt={comment.editedAt} />}
         {!editing && (
           <span className="ml-auto flex gap-1">
             <button
@@ -147,6 +138,31 @@ function CommentEntry({ comment }: { comment: CommentView }) {
         </>
       )}
     </li>
+  );
+}
+
+/**
+ * "edited", which shows the last edit time while hovered or focused (FR-005). A native `title`
+ * tooltip only appears on hover, so the time is a real element that CSS reveals for both.
+ */
+function EditedMarker({ editedAt }: { editedAt: string }) {
+  const label = `Edited ${editedAt}`;
+  return (
+    <span
+      role="note"
+      tabIndex={0}
+      aria-label={label}
+      className="group relative cursor-default rounded outline-none hover:text-fg focus:text-fg focus-visible:ring-1 focus-visible:ring-accent"
+    >
+      <span>edited</span>
+      <span
+        aria-hidden="true"
+        data-testid="edited-time"
+        className="pointer-events-none absolute left-0 top-full z-10 mt-1 hidden whitespace-nowrap rounded border border-line bg-panel px-1.5 py-0.5 text-fg group-hover:block group-focus:block"
+      >
+        {label}
+      </span>
+    </span>
   );
 }
 
