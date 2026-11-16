@@ -120,7 +120,7 @@ Nobody answered at the keyboard, so I acted as the product owner who wrote FEATU
 
 ## Honest notes and deviations
 
-- **This is the second BMAD run on this branch.** The first, on 2026-09-23, used `bmad-build` alone. It had no standalone spec, and spec, code and review landed in one commit. That run is kept at the tag `bmad-v1`. This run started again from the install commit and regenerated all the code. The two runs reached most of the same product decisions. Where they differ, this run's answers are in the table above.
+- **This is the second BMAD run on this branch.** The first, on 2026-09-23, used `bmad-build` alone. It had no standalone spec, and spec, code and review landed in one commit. It was replaced, not kept. This run started again from the install commit and regenerated all the code. The two runs reached most of the same product decisions. Where they differ, this run's answers are in the table above.
 - **Commits at each phase.** `bmad-build` makes one commit at the end of step 5. I committed at its phase boundaries as well (after CHECKPOINT 1, after step 3 and after step 4), so the history shows each phase. Step 4 says "do not `git add`" while it stages the review diff. I committed before staging, so the reviewers saw the same diff either way.
 - **Who wrote SPEC.md.** `bmad-spec` says SPEC.md is "derived" from `.memlog.md`, but in Claude Code the derivation is the agent writing the file from the log. No script renders it. The memlog entries were written with BMAD's own `memlog.py`.
 - **"by user" in the memlog.** The answers to the open questions are tagged `by user` in `.memlog.md`. They came from me standing in as product owner, and a later memlog line says so. The log is append-only, so the tag stays as written.
