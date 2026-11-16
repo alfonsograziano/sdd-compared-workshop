@@ -36,6 +36,7 @@ The installer needs `uv` (Python), because each skill starts by running a script
 | `review: adversarial pass on the feature diff (bmad-review)` | Adversarial review | The report, with the triage of every finding |
 | `fix: address the adversarial review (bmad-review)` | Fixes | The six adversarial findings that held up |
 | `docs: add the BMAD branch notes` | Notes | This file and the README pointer |
+| `docs: describe the new data-layer modules in CLAUDE.md` | Notes | The Architecture section names the new modules, activity recording and `NotFoundError` |
 
 ## Read the artifacts in this order
 
@@ -127,6 +128,7 @@ Nobody answered at the keyboard, so I acted as the product owner who wrote FEATU
 - **The implementation prompt was not changed.** Step 3's two-sentence prompt went to the subagent word for word.
 - **Triage is the agent's judgment.** BMAD gives the rules: what counts as `false`, when to reject a `low` finding, and how to route `patch`, `defer`, `bad_spec` and `intent_gap`. Applying them is a judgment call. The evidence for each call is written next to it, so it can be checked.
 - **e2e ran in a copy of the tree.** A `next dev` was already running in this folder on port 3000, and Next refuses a second dev server in the same folder. Playwright's own Chromium was not installed either. Both e2e runs (after `bmad-build` and after the adversarial fixes) used a copy of the committed tree with the system Chrome. Both tests passed. The project's `playwright.config.ts` is unchanged.
+- **CLAUDE.md was updated after the run.** The build review flagged that the new data-layer modules and `NotFoundError` were not written down for agents. BMAD's triage rules send any fix that edits agent-context files to `defer`, and the README patch did not cover CLAUDE.md. A later comparison with the other branches caught it, and a separate `docs:` commit updated the Architecture section.
 - **A test fix during the adversarial fixes.** The new due-date e2e step first typed a date as MM/DD/YYYY, and the system Chrome read it day-first. It now types 09/09/2026, which reads the same either way, and presses Enter to commit.
 
 ## Rough counts
