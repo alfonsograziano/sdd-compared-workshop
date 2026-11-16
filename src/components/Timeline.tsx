@@ -50,12 +50,12 @@ function useSave() {
       else setError(result.error);
     });
   }
-  return { pending, error, save };
+  return { pending, error, save, clearError: () => setError(null) };
 }
 
 function CommentItem({ comment }: { comment: Extract<TimelineItem, { kind: "comment" }> }) {
   const [editing, setEditing] = useState(false);
-  const { pending, error, save } = useSave();
+  const { pending, error, save, clearError } = useSave();
 
   return (
     <li data-testid="comment" className="rounded-md border border-line bg-panel">
@@ -100,7 +100,14 @@ function CommentItem({ comment }: { comment: Extract<TimelineItem, { kind: "comm
               <button type="submit" className="btn btn-primary" disabled={pending}>
                 Save
               </button>
-              <button type="button" className="btn" onClick={() => setEditing(false)}>
+              <button
+                type="button"
+                className="btn"
+                onClick={() => {
+                  setEditing(false);
+                  clearError();
+                }}
+              >
                 Cancel
               </button>
               {error && <span className="text-[12px] text-red-400">{error}</span>}
@@ -138,7 +145,7 @@ function NewComment({ taskId }: { taskId: number }) {
         className="w-full rounded-md border border-line bg-panel p-3 text-[13px] outline-none focus:border-accent"
       />
       <div className="mt-2 flex items-center gap-2">
-        <button type="submit" className="btn btn-primary" disabled={pending || body.trim() === ""}>
+        <button type="submit" className="btn btn-primary" disabled={pending}>
           Comment
         </button>
         {error && <span className="text-[12px] text-red-400">{error}</span>}

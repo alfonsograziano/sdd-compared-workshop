@@ -62,9 +62,12 @@ export async function updateCommentAction(id: number, body: string): Promise<Act
 }
 
 export async function deleteCommentAction(id: number): Promise<ActionResult> {
-  return run(() => {
+  let missing = false;
+  const result = run(() => {
     const cid = commentId.parse(id);
-    deleteComment(cid);
+    // deleteComment returns null when the comment no longer exists.
+    if (deleteComment(cid) === null) missing = true;
     return cid;
   });
+  return missing ? { ok: false, error: `Comment ${id} not found` } : result;
 }

@@ -13,21 +13,38 @@ test("comment on a task, edit and delete it, and see activity and counts", async
   const comments = timeline.getByTestId("comment");
   await expect(timeline.getByTestId("activity-entry").first()).toContainText("created the task");
 
-  // Add two comments. Markdown is rendered.
+  // An empty comment is rejected: the user sees why and the typed text stays.
   const box = page.getByLabel("New comment");
+  await box.fill("   ");
+  await page.getByRole("button", { name: "Comment", exact: true }).click();
+  await expect(timeline.getByText("Comment can't be empty")).toBeVisible();
+  await expect(box).toHaveValue("   ");
+  await expect(comments).toHaveCount(0);
+
+  // Add two comments. Markdown is rendered, bold and lists.
   await box.fill("First **comment**");
   await page.getByRole("button", { name: "Comment", exact: true }).click();
   await expect(comments).toHaveCount(1);
   await expect(comments.first().locator("strong")).toHaveText("comment");
   await expect(box).toHaveValue("");
 
-  await box.fill("Second comment");
+  await box.fill("Second comment\n\n- an item");
   await page.getByRole("button", { name: "Comment", exact: true }).click();
   await expect(comments).toHaveCount(2);
   await expect(comments.last()).toContainText("Second comment");
+  await expect(comments.last().locator("li")).toHaveText("an item");
+
+  // Saving an empty edit is rejected and the comment keeps its old body.
+  const first = comments.filter({ hasText: "First" });
+  await first.getByRole("button", { name: "Edit" }).click();
+  await first.getByLabel("Edit comment").fill("");
+  await first.getByRole("button", { name: "Save" }).click();
+  await expect(first.getByText("Comment can't be empty")).toBeVisible();
+  await first.getByRole("button", { name: "Cancel" }).click();
+  await expect(first.locator("strong")).toHaveText("comment");
+  await expect(first.getByText("Comment can't be empty")).toHaveCount(0);
 
   // Edit the first one. It stays first and is marked as edited.
-  const first = comments.filter({ hasText: "First" });
   await expect(first.getByTestId("comment-edited")).toHaveCount(0);
   await first.getByRole("button", { name: "Edit" }).click();
   await first.getByLabel("Edit comment").fill("First comment, fixed");
