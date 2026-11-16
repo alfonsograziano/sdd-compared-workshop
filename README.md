@@ -1,5 +1,9 @@
 # Tasks
 
+## This branch
+
+This is the `bmad` branch. It adds comments and an activity log to tasks, built with BMAD Method 6.12.0. `bmad-spec` wrote the spec, `bmad-build` planned, built and reviewed the code, and a separate `bmad-review` pass checked it adversarially. Each phase is its own commit. Read [docs/BRANCH.md](docs/BRANCH.md) first: it lists the artifacts in reading order, what BMAD installed, and every decision made during the run.
+
 A small task manager in the style of Linear. It has a Kanban board, a list view and a detail page for each task. It runs on your machine with a local SQLite file, has no login and is made for one user.
 
 The app is small on purpose. You can read the whole codebase in a few minutes.
@@ -25,7 +29,7 @@ You need Node.js 24 (see `.nvmrc`).
 ```bash
 npm install
 npm run db:migrate   # creates data/app.db and its tables
-npm run db:seed      # fills it with 12 demo tasks (this deletes what is there)
+npm run db:seed      # fills it with 12 demo tasks and 3 comments (this deletes what is there)
 npm run dev          # http://localhost:3000
 ```
 
